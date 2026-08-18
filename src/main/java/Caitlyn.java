@@ -1,9 +1,12 @@
+import java.util.Scanner;
+
 /**
  * Entry point for the chatbot application.
  */
 public class Caitlyn {
     /**
-     * Starts the application, greets the user, and exits.
+     * Starts the application, greets the user, echoes commands, and exits when
+     * the user enters {@code bye}.
      *
      * @param args command-line arguments supplied when the program starts
      */
@@ -21,7 +24,20 @@ public class Caitlyn {
         System.out.println("Hello! I'm Caitlyn.");
         System.out.println("What can I do for you, master?");
         System.out.println(separator);
-        System.out.println("Bye Master. Please let me know if you need anything else!");
-        System.out.println(separator);
+
+        Scanner scanner = new Scanner(System.in);
+        while (scanner.hasNextLine()) {
+            String command = scanner.nextLine();
+
+            System.out.println(separator);
+            if (command.equals("bye")) {
+                System.out.println("     Bye, master. I hope to serve you again soon!");
+                System.out.println(separator);
+                break;
+            }
+
+            System.out.println("     " + command);
+            System.out.println(separator);
+        }
     }
 }

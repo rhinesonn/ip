@@ -27,8 +27,7 @@ public class Caitlyn {
         System.out.println("How may I serve you today?");
         System.out.println(separator);
 
-        List<String> tasks = new ArrayList<>();
-        List<Boolean> taskStatuses = new ArrayList<>();
+        List<Task> tasks = new ArrayList<>();
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine().trim();
@@ -43,8 +42,7 @@ public class Caitlyn {
             if ("list".equals(command)) {
                 System.out.println("     Of course, master. Here are the tasks in your list:");
                 for (int i = 0; i < tasks.size(); i++) {
-                    String status = taskStatuses.get(i) ? "X" : " ";
-                    System.out.println("     " + (i + 1) + ".[" + status + "] " + tasks.get(i));
+                    System.out.println("     " + (i + 1) + "." + tasks.get(i));
                 }
             } else if (command.startsWith("mark ")) {
                 String[] commandParts = command.split(" ");
@@ -56,9 +54,10 @@ public class Caitlyn {
                         if (taskNumber < 1 || taskNumber > tasks.size()) {
                             System.out.println("     I beg your pardon, master, but I could not find task " + taskNumber + ".");
                         } else {
-                            taskStatuses.set(taskNumber - 1, true);
+                            Task task = tasks.get(taskNumber - 1);
+                            task.markAsDone();
                             System.out.println("     As you wish, master. I have marked this task as done:");
-                            System.out.println("       [X] " + tasks.get(taskNumber - 1));
+                            System.out.println("       " + task);
                         }
                     } catch (NumberFormatException exception) {
                         System.out.println("     I beg your pardon, master. Please provide a valid task number, for example: mark 2");
@@ -74,17 +73,17 @@ public class Caitlyn {
                         if (taskNumber < 1 || taskNumber > tasks.size()) {
                             System.out.println("     I beg your pardon, master, but I could not find task " + taskNumber + ".");
                         } else {
-                            taskStatuses.set(taskNumber - 1, false);
+                            Task task = tasks.get(taskNumber - 1);
+                            task.markAsNotDone();
                             System.out.println("     Of course, master. I have marked this task as not done yet:");
-                            System.out.println("       [ ] " + tasks.get(taskNumber - 1));
+                            System.out.println("       " + task);
                         }
                     } catch (NumberFormatException exception) {
                         System.out.println("     I beg your pardon, master. Please provide a valid task number, for example: unmark 2");
                     }
                 }
             } else {
-                tasks.add(command);
-                taskStatuses.add(false);
+                tasks.add(new Task(command));
                 System.out.println("     As you wish, master. I have added: " + command);
             }
 

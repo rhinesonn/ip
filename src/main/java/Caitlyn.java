@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -5,8 +7,8 @@ import java.util.Scanner;
  */
 public class Caitlyn {
     /**
-     * Starts the application, greets the user, echoes commands, and exits when
-     * the user enters {@code bye}.
+     * Starts the application, accepts tasks, displays the task list, and exits
+     * when the user enters {@code bye}.
      *
      * @param args command-line arguments supplied when the program starts
      */
@@ -25,18 +27,27 @@ public class Caitlyn {
         System.out.println("What can I do for you, master?");
         System.out.println(separator);
 
+        List<String> tasks = new ArrayList<>();
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine();
 
             System.out.println(separator);
-            if (command.equals("bye")) {
+            if ("bye".equals(command)) {
                 System.out.println("     Bye, master. I hope to serve you again soon!");
                 System.out.println(separator);
                 break;
             }
 
-            System.out.println("     " + command);
+            if ("list".equals(command)) {
+                for (int i = 0; i < tasks.size(); i++) {
+                    System.out.println((i + 1) + ". " + tasks.get(i));
+                }
+            } else {
+                tasks.add(command);
+                System.out.println("     added: " + command);
+            }
+
             System.out.println(separator);
         }
     }

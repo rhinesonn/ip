@@ -64,6 +64,24 @@ public class Caitlyn {
                         System.out.println("     I beg your pardon, master. Please provide a valid task number, for example: mark 2");
                     }
                 }
+            } else if (command.startsWith("unmark ")) {
+                String[] commandParts = command.split(" ");
+                if (commandParts.length != 2) {
+                    System.out.println("     I beg your pardon, master. Please provide a task number, for example: unmark 2");
+                } else {
+                    try {
+                        int taskNumber = Integer.parseInt(commandParts[1]);
+                        if (taskNumber < 1 || taskNumber > tasks.size()) {
+                            System.out.println("     I beg your pardon, master, but I could not find task " + taskNumber + ".");
+                        } else {
+                            taskStatuses.set(taskNumber - 1, false);
+                            System.out.println("     Of course, master. I have marked this task as not done yet:");
+                            System.out.println("       [ ] " + tasks.get(taskNumber - 1));
+                        }
+                    } catch (NumberFormatException exception) {
+                        System.out.println("     I beg your pardon, master. Please provide a valid task number, for example: unmark 2");
+                    }
+                }
             } else {
                 tasks.add(command);
                 taskStatuses.add(false);

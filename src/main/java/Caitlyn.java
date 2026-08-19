@@ -66,6 +66,8 @@ public class Caitlyn {
             changeTaskStatus(command, tasks, true);
         } else if (command.equals("unmark") || command.startsWith("unmark ")) {
             changeTaskStatus(command, tasks, false);
+        } else if (command.equals("delete") || command.startsWith("delete ")) {
+            deleteTask(command, tasks);
         } else if (command.equals("todo") || command.startsWith("todo ")) {
             String description = command.substring("todo".length()).trim();
             if (description.isEmpty()) {
@@ -121,6 +123,38 @@ public class Caitlyn {
             System.out.println("     Of course, master. I have marked this task as not done yet:");
         }
         System.out.println("       " + task);
+    }
+
+    /**
+     * Deletes a task after validating the task number and reports the updated task count.
+     *
+     * @param command the complete delete command
+     * @param tasks the current task list
+     * @throws CaitlynException when the command has no valid task number
+     */
+    private static void deleteTask(String command, List<Task> tasks) throws CaitlynException {
+        String[] commandParts = command.split("\\s+");
+        if (commandParts.length != 2) {
+            throw new CaitlynException("I beg your pardon, master. Please provide a task number, for example: "
+                    + "delete 2.");
+        }
+
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(commandParts[1]);
+        } catch (NumberFormatException exception) {
+            throw new CaitlynException("I beg your pardon, master. Please provide a valid task number, for example: "
+                    + "delete 2.");
+        }
+
+        if (taskNumber < 1 || taskNumber > tasks.size()) {
+            throw new CaitlynException("I beg your pardon, master, but I could not find task " + taskNumber + ".");
+        }
+
+        Task removedTask = tasks.remove(taskNumber - 1);
+        System.out.println("     Noted. I've removed this task:");
+        System.out.println("       " + removedTask);
+        System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
     }
 
     /**

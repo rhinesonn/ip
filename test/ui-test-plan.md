@@ -230,3 +230,50 @@ I beg your pardon, master. Please provide a valid task number, for example: unma
 1.[T][ ] finish project
 2.[D][ ] review report (by: Sunday)
 ```
+
+## Test case 11: Delete a task and renumber the remaining list
+
+Aim: Verify that a task can be removed by its displayed number, that the removed task is confirmed, and that the remaining tasks are renumbered.
+
+Input:
+
+```text
+todo read book
+deadline return book /by June 6th
+event project meeting /from Aug 6th 2pm /to 4pm
+todo join sports club
+delete 3
+list
+bye
+```
+
+Expected output:
+
+```text
+Noted. I've removed this task:
+[E][ ] project meeting (from: Aug 6th 2pm to: 4pm)
+Now you have 3 tasks in the list.
+1.[T][ ] read book
+2.[D][ ] return book (by: June 6th)
+3.[T][ ] join sports club
+```
+
+## Test case 12: Reject an invalid delete command
+
+Aim: Verify that an invalid task number does not delete an existing task or change the task count.
+
+Input:
+
+```text
+todo keep this task
+delete 2
+list
+bye
+```
+
+Expected output:
+
+```text
+I beg your pardon, master, but I could not find task 2.
+1.[T][ ] keep this task
+```

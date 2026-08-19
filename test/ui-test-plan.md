@@ -104,3 +104,41 @@ Expected output:
 Please provide a deadline in the format: deadline task /by date
 Here are the tasks in your list:
 ```
+
+## Test case 6: Reject an empty ToDo description
+
+Aim: Verify that an empty ToDo is rejected with a Caitlyn exception and that no empty task is added.
+
+Input:
+
+```text
+todo
+list
+bye
+```
+
+Expected output:
+
+```text
+I beg your pardon, master. I cannot prepare a task without a description.
+Here are the tasks in your list:
+```
+
+## Test case 7: Reject an unknown command
+
+Aim: Verify that an unrecognized command is rejected and that Caitlyn continues accepting commands.
+
+Input:
+
+```text
+blah
+list
+bye
+```
+
+Expected output:
+
+```text
+I humbly beg your pardon, master. I do not know how to carry out that command.
+Here are the tasks in your list:
+```

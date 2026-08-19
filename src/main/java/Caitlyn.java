@@ -40,7 +40,7 @@ public class Caitlyn {
             }
 
             if ("list".equals(command)) {
-                System.out.println("     Of course, master. Here are the tasks in your list:");
+                System.out.println("     Here are the tasks in your list:");
                 for (int i = 0; i < tasks.size(); i++) {
                     System.out.println("     " + (i + 1) + "." + tasks.get(i));
                 }
@@ -82,12 +82,77 @@ public class Caitlyn {
                         System.out.println("     I beg your pardon, master. Please provide a valid task number, for example: unmark 2");
                     }
                 }
+            } else if (command.startsWith("todo ")) {
+                addTask(tasks, new ToDo(command.substring("todo ".length()).trim()));
+            } else if (command.startsWith("deadline ")) {
+                addDeadline(tasks, command.substring("deadline ".length()).trim());
+            } else if (command.startsWith("event ")) {
+                addEvent(tasks, command.substring("event ".length()).trim());
             } else {
-                tasks.add(new Task(command));
-                System.out.println("     As you wish, master. I have added: " + command);
+                // Keep accepting the old plain-text form as a ToDo for compatibility.
+                addTask(tasks, new ToDo(command));
             }
 
             System.out.println(separator);
         }
+    }
+
+    /**
+     * Adds a task and prints the standard confirmation message.
+     *
+     * @param tasks the current task list
+     * @param task the task to add
+     */
+    private static void addTask(List<Task> tasks, Task task) {
+        tasks.add(task);
+        System.out.println("     Got it. I've added this task:");
+        System.out.println("       " + task);
+        System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
+    }
+
+    /**
+     * Parses and adds a deadline command.
+     *
+     * @param tasks the current task list
+     * @param command the part of the command after {@code deadline}
+     */
+    private static void addDeadline(List<Task> tasks, String command) {
+        int markerIndex = command.indexOf("/by");
+        if (markerIndex <= 0) {
+            System.out.println("     Please provide a deadline in the format: deadline task /by date");
+            return;
+        }
+
+        String description = command.substring(0, markerIndex).trim();
+        String by = command.substring(markerIndex + "/by".length()).trim();
+        if (description.isEmpty() || by.isEmpty()) {
+            System.out.println("     Please provide both a task description and a deadline.");
+            return;
+        }
+        addTask(tasks, new Deadline(description, by));
+    }
+
+    /**
+     * Parses and adds an event command.
+     *
+     * @param tasks the current task list
+     * @param command the part of the command after {@code event}
+     */
+    private static void addEvent(List<Task> tasks, String command) {
+        int fromMarkerIndex = command.indexOf("/from");
+        int toMarkerIndex = command.indexOf("/to");
+        if (fromMarkerIndex <= 0 || toMarkerIndex <= fromMarkerIndex) {
+            System.out.println("     Please provide an event in the format: event task /from start /to end");
+            return;
+        }
+
+        String description = command.substring(0, fromMarkerIndex).trim();
+        String from = command.substring(fromMarkerIndex + "/from".length(), toMarkerIndex).trim();
+        String to = command.substring(toMarkerIndex + "/to".length()).trim();
+        if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
+            System.out.println("     Please provide a description, start time, and end time for the event.");
+            return;
+        }
+        addTask(tasks, new Event(description, from, to));
     }
 }

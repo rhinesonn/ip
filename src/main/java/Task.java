@@ -29,6 +29,42 @@ public class Task {
     }
 
     /**
+     * Returns the one-letter marker used for this kind of task.
+     *
+     * @return the task type marker
+     */
+    protected String getTaskType() {
+        return "T";
+    }
+
+    /**
+     * Returns the task description together with any type-specific details.
+     *
+     * @return the text displayed after the task status
+     */
+    protected String getTaskDetails() {
+        return description;
+    }
+
+    /**
+     * Returns the description of this task.
+     *
+     * @return the task description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Returns whether this task has been completed.
+     *
+     * @return {@code true} when the task is done
+     */
+    public boolean isDone() {
+        return done;
+    }
+
+    /**
      * Returns the task in the format used when displaying the task list.
      *
      * @return a status marker followed by the task description
@@ -36,6 +72,6 @@ public class Task {
     @Override
     public String toString() {
         String status = done ? "X" : " ";
-        return "[" + status + "] " + description;
+        return "[" + getTaskType() + "][" + status + "] " + getTaskDetails();
     }
 }

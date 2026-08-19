@@ -29,12 +29,12 @@ public class Task {
     }
 
     /**
-     * Returns the one-letter marker used for this kind of task.
+     * Returns the kind of this task.
      *
-     * @return the task type marker
+     * @return the task type
      */
-    protected String getTaskType() {
-        return "T";
+    protected TaskType getTaskType() {
+        return TaskType.TODO;
     }
 
     /**
@@ -72,6 +72,6 @@ public class Task {
     @Override
     public String toString() {
         String status = done ? "X" : " ";
-        return "[" + getTaskType() + "][" + status + "] " + getTaskDetails();
+        return "[" + getTaskType().getMarker() + "][" + status + "] " + getTaskDetails();
     }
 }

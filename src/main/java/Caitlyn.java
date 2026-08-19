@@ -83,14 +83,14 @@ public class Caitlyn {
                     }
                 }
             } else if (command.startsWith("todo ")) {
-                addTask(tasks, new ToDo(command.substring("todo ".length()).trim()));
+                addTask(tasks, new Todo(command.substring("todo ".length()).trim()));
             } else if (command.startsWith("deadline ")) {
                 addDeadline(tasks, command.substring("deadline ".length()).trim());
             } else if (command.startsWith("event ")) {
                 addEvent(tasks, command.substring("event ".length()).trim());
             } else {
                 // Keep accepting the old plain-text form as a ToDo for compatibility.
-                addTask(tasks, new ToDo(command));
+                addTask(tasks, new Todo(command));
             }
 
             System.out.println(separator);

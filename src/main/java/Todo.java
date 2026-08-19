@@ -1,13 +1,13 @@
 /**
  * A task that does not have a date or time attached to it.
  */
-public class ToDo extends Task {
+public class Todo extends Task {
     /**
-     * Creates a new incomplete ToDo task.
+     * Creates a new incomplete Todo task.
      *
      * @param description the text describing the task
      */
-    public ToDo(String description) {
+    public Todo(String description) {
         super(description);
     }
 }

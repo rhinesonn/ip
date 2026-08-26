@@ -245,7 +245,12 @@ public class Caitlyn {
             throw new CaitlynException(
                     "I beg your pardon, master. Please provide both a task description and a deadline.");
         }
-        addTask(tasks, new Deadline(description, by));
+        try {
+            addTask(tasks, new Deadline(description, by));
+        } catch (IllegalArgumentException exception) {
+            throw new CaitlynException(
+                    "I beg your pardon, master. Please use a valid date such as 2019-10-15 or 2/12/2019 1800.");
+        }
     }
 
     /**
@@ -269,6 +274,11 @@ public class Caitlyn {
             throw new CaitlynException(
                     "I beg your pardon, master. Please provide a description, start time, and end time for the event.");
         }
-        addTask(tasks, new Event(description, from, to));
+        try {
+            addTask(tasks, new Event(description, from, to));
+        } catch (IllegalArgumentException exception) {
+            throw new CaitlynException(
+                    "I beg your pardon, master. Please use valid dates such as 2019-10-15 or 2/12/2019 1800.");
+        }
     }
 }

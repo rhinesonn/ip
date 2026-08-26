@@ -24,14 +24,14 @@ Now you have 1 tasks in the list.
 1.[T][ ] borrow book
 ```
 
-## Test case 2: Add a Deadline with arbitrary date text
+## Test case 2: Parse and format a Deadline date and time
 
-Aim: Verify that a deadline preserves its `/by` text without converting it to a date/time object.
+Aim: Verify that a deadline parses the example day/month/year and compact 24-hour time into a date/time value, displays it in a different format, and saves it canonically.
 
 Input:
 
 ```text
-deadline do homework /by no idea :-p
+deadline return book /by 2/12/2019 1800
 list
 bye
 ```
@@ -39,18 +39,24 @@ bye
 Expected output:
 
 ```text
-[D][ ] do homework (by: no idea :-p)
-1.[D][ ] do homework (by: no idea :-p)
+[D][ ] return book (by: Dec 2 2019 6:00 PM)
+1.[D][ ] return book (by: Dec 2 2019 6:00 PM)
 ```
 
-## Test case 3: Add an Event with start and end text
+Expected `data/duke.txt` contents after the case:
 
-Aim: Verify that an event preserves both `/from` and `/to` values, including spaces and date-like text.
+```text
+D | 0 | return book | 2019-12-02T18:00
+```
+
+## Test case 3: Parse and format an Event with date-only values
+
+Aim: Verify that an event stores typed start and end dates and displays them in the requested readable format.
 
 Input:
 
 ```text
-event orientation week /from 4/10/2019 /to 11/10/2019
+event orientation week /from 2019-10-04 /to 2019-10-11
 list
 bye
 ```
@@ -58,8 +64,8 @@ bye
 Expected output:
 
 ```text
-[E][ ] orientation week (from: 4/10/2019 to: 11/10/2019)
-1.[E][ ] orientation week (from: 4/10/2019 to: 11/10/2019)
+[E][ ] orientation week (from: Oct 4 2019 to: Oct 11 2019)
+1.[E][ ] orientation week (from: Oct 4 2019 to: Oct 11 2019)
 ```
 
 ## Test case 4: Use polymorphic task storage and status changes
@@ -70,8 +76,8 @@ Input:
 
 ```text
 todo read book
-deadline return book /by Sunday
-event project meeting /from Mon 2pm /to 4pm
+deadline return book /by 2019-10-20
+event project meeting /from 2019-10-21 1400 /to 2019-10-21 1600
 mark 1
 unmark 1
 list
@@ -84,8 +90,8 @@ Expected output:
 [T][X] read book
 [T][ ] read book
 1.[T][ ] read book
-2.[D][ ] return book (by: Sunday)
-3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+2.[D][ ] return book (by: Oct 20 2019)
+3.[E][ ] project meeting (from: Oct 21 2019 2:00 PM to: Oct 21 2019 4:00 PM)
 ```
 
 ## Test case 5: Reject an incomplete Deadline command
@@ -180,9 +186,9 @@ Aim: Verify that malformed Deadline and Event commands do not add partial tasks 
 Input:
 
 ```text
-deadline submit report /by Friday
+deadline submit report /by 2019-10-18
 deadline missing deadline
-event team meeting /from Monday /to 3pm
+event team meeting /from 2019-10-21 /to 2019-10-21 1500
 event /from Tuesday /to 4pm
 list
 bye
@@ -191,13 +197,13 @@ bye
 Expected output:
 
 ```text
-[D][ ] submit report (by: Friday)
+[D][ ] submit report (by: Oct 18 2019)
 I beg your pardon, master. Please provide a deadline in the format: deadline task /by date.
-[E][ ] team meeting (from: Monday to: 3pm)
+[E][ ] team meeting (from: Oct 21 2019 to: Oct 21 2019 3:00 PM)
 I beg your pardon, master. Please provide an event in the format: event task /from start /to end.
 Here are the tasks in your list:
-1.[D][ ] submit report (by: Friday)
-2.[E][ ] team meeting (from: Monday to: 3pm)
+1.[D][ ] submit report (by: Oct 18 2019)
+2.[E][ ] team meeting (from: Oct 21 2019 to: Oct 21 2019 3:00 PM)
 ```
 
 ## Test case 10: Preserve task status after invalid mark commands
@@ -208,7 +214,7 @@ Input:
 
 ```text
 todo finish project
-deadline review report /by Sunday
+deadline review report /by 2019-10-20
 mark 1
 mark 3
 list
@@ -224,11 +230,11 @@ Expected output:
 [T][X] finish project
 I beg your pardon, master, but I could not find task 3.
 1.[T][X] finish project
-2.[D][ ] review report (by: Sunday)
+2.[D][ ] review report (by: Oct 20 2019)
 I beg your pardon, master. Please provide a valid task number, for example: unmark 2.
 [T][ ] finish project
 1.[T][ ] finish project
-2.[D][ ] review report (by: Sunday)
+2.[D][ ] review report (by: Oct 20 2019)
 ```
 
 ## Test case 11: Delete a task and renumber the remaining list
@@ -239,8 +245,8 @@ Input:
 
 ```text
 todo read book
-deadline return book /by June 6th
-event project meeting /from Aug 6th 2pm /to 4pm
+deadline return book /by 2019-06-06
+event project meeting /from 2019-08-06 1400 /to 2019-08-06 1600
 todo join sports club
 delete 3
 list
@@ -251,10 +257,10 @@ Expected output:
 
 ```text
 Noted. I've removed this task:
-[E][ ] project meeting (from: Aug 6th 2pm to: 4pm)
+[E][ ] project meeting (from: Aug 6 2019 2:00 PM to: Aug 6 2019 4:00 PM)
 Now you have 3 tasks in the list.
 1.[T][ ] read book
-2.[D][ ] return book (by: June 6th)
+2.[D][ ] return book (by: Jun 6 2019)
 3.[T][ ] join sports club
 ```
 
@@ -286,7 +292,7 @@ Input:
 
 ```text
 todo read book
-deadline return book /by June 6th
+deadline return book /by 2019-06-06
 mark 1
 delete 2
 bye
@@ -296,7 +302,7 @@ Expected output:
 
 ```text
 [T][ ] read book
-[D][ ] return book (by: June 6th)
+[D][ ] return book (by: Jun 6 2019)
 [T][X] read book
 Now you have 1 tasks in the list.
 ```
@@ -315,8 +321,8 @@ Initial data/duke.txt contents:
 
 ```text
 T | 1 | read book
-D | 0 | return book | Sunday
-E | 0 | project meeting | Mon 2pm | 4pm
+D | 0 | return book | 2019-10-20
+E | 0 | project meeting | 2019-10-21 | 2019-10-21T16:00
 T | 1 | path \\backup \| notes
 ```
 
@@ -332,8 +338,8 @@ Expected output:
 ```text
 Here are the tasks in your list:
 1.[T][X] read book
-2.[D][ ] return book (by: Sunday)
-3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+2.[D][ ] return book (by: Oct 20 2019)
+3.[E][ ] project meeting (from: Oct 21 2019 to: Oct 21 2019 4:00 PM)
 4.[T][X] path \backup | notes
 ```
 
@@ -369,8 +375,8 @@ Input:
 
 ```text
 todo plan | review \backup
-deadline send | mail /by Friday | 5pm
-event call /from 10\am /to 11|am
+deadline send | mail /by 2019-10-15
+event call | backup /from 2019-10-15 /to 2019-10-16
 bye
 ```
 
@@ -378,16 +384,16 @@ Expected output:
 
 ```text
 [T][ ] plan | review \backup
-[D][ ] send | mail (by: Friday | 5pm)
-[E][ ] call (from: 10\am to: 11|am)
+[D][ ] send | mail (by: Oct 15 2019)
+[E][ ] call | backup (from: Oct 15 2019 to: Oct 16 2019)
 ```
 
 Expected `data/duke.txt` contents after the case:
 
 ```text
 T | 0 | plan \| review \\backup
-D | 0 | send \| mail | Friday \| 5pm
-E | 0 | call | 10\\am | 11\|am
+D | 0 | send \| mail | 2019-10-15
+E | 0 | call \| backup | 2019-10-15 | 2019-10-16
 ```
 
 ## Test case 17: Start without an existing data file
@@ -414,4 +420,23 @@ Expected `data/duke.txt` contents after the case:
 
 ```text
 T | 0 | first-run task
+```
+
+## Test case 18: Reject an invalid date
+
+Aim: Verify that an impossible calendar date is rejected without crashing Caitlyn or adding a task.
+
+Input:
+
+```text
+deadline invalid date /by 2019-02-30
+list
+bye
+```
+
+Expected output:
+
+```text
+Please use a valid date such as 2019-10-15 or 2/12/2019 1800.
+Here are the tasks in your list:
 ```

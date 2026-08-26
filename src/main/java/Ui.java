@@ -63,7 +63,6 @@ public final class Ui {
     /** Displays Caitlyn's farewell message. */
     public void showFarewell() {
         System.out.println("     Farewell, master. It has been my pleasure to serve you.");
-        showSeparator();
     }
 
     /** Displays an error encountered while loading saved tasks. */

@@ -1,3 +1,5 @@
+package caitlyn;
+
 /**
  * Represents an input error that Caitlyn can explain to the user.
  */

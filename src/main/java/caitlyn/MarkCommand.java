@@ -1,23 +1,30 @@
+package caitlyn;
+
 import java.util.List;
 
 /**
- * A command that removes one task from the list.
+ * A command that marks or unmarks one task.
  */
-public final class DeleteCommand extends Command {
-    /** The complete delete command. */
+public final class MarkCommand extends Command {
+    /** The complete mark or unmark command. */
     private final String command;
 
-    /** Creates a delete command with its unparsed arguments. */
-    public DeleteCommand(String command) {
+    /** Whether this command marks the selected task as done. */
+    private final boolean markAsDone;
+
+    /** Creates a mark or unmark command. */
+    public MarkCommand(String command, boolean markAsDone) {
         this.command = command;
+        this.markAsDone = markAsDone;
     }
 
     @Override
     public void execute(List<Task> tasks, Ui ui) throws CaitlynException {
+        String commandName = markAsDone ? "mark" : "unmark";
         String[] commandParts = command.split("\\s+");
         if (commandParts.length != 2) {
             throw new CaitlynException("I beg your pardon, master. Please provide a task number, for example: "
-                    + "delete 2.");
+                    + commandName + " 2.");
         }
 
         int taskNumber;
@@ -25,20 +32,30 @@ public final class DeleteCommand extends Command {
             taskNumber = Integer.parseInt(commandParts[1]);
         } catch (NumberFormatException exception) {
             throw new CaitlynException("I beg your pardon, master. Please provide a valid task number, for example: "
-                    + "delete 2.");
+                    + commandName + " 2.");
         }
 
         if (taskNumber < 1 || taskNumber > tasks.size()) {
             throw new CaitlynException("I beg your pardon, master, but I could not find task " + taskNumber + ".");
         }
 
-        Task removedTask = tasks.remove(taskNumber - 1);
+        Task task = tasks.get(taskNumber - 1);
+        boolean wasDone = task.isDone();
+        if (markAsDone) {
+            task.markAsDone();
+        } else {
+            task.markAsNotDone();
+        }
         try {
             saveTasks(tasks);
         } catch (CaitlynException exception) {
-            tasks.add(taskNumber - 1, removedTask);
+            if (wasDone) {
+                task.markAsDone();
+            } else {
+                task.markAsNotDone();
+            }
             throw exception;
         }
-        ui.showTaskDeleted(removedTask, tasks.size());
+        ui.showTaskStatus(task, markAsDone);
     }
 }

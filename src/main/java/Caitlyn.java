@@ -28,7 +28,7 @@ public class Caitlyn {
         System.out.println("How may I serve you today?");
         System.out.println(separator);
 
-        List<Task> tasks = new ArrayList<>();
+        List<Task> tasks = loadTasks();
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine().trim();
@@ -47,6 +47,20 @@ public class Caitlyn {
             }
 
             System.out.println(separator);
+        }
+    }
+
+    /**
+     * Loads the saved task list, falling back to an empty list when saved data cannot be read.
+     *
+     * @return the saved tasks or an empty task list
+     */
+    private static List<Task> loadTasks() {
+        try {
+            return TaskStorage.load();
+        } catch (IOException | IllegalArgumentException exception) {
+            System.out.println("     I could not read the saved tasks, so I am starting with an empty list.");
+            return new ArrayList<>();
         }
     }
 

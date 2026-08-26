@@ -306,3 +306,31 @@ Expected `data/duke.txt` contents after the case:
 ```text
 T | 1 | read book
 ```
+
+## Test case 14: Load saved tasks at startup
+
+Aim: Verify that ToDos, deadlines, events, and their saved completion statuses are restored when Caitlyn starts.
+
+Initial data/duke.txt contents:
+
+```text
+T | 1 | read book
+D | 0 | return book | Sunday
+E | 0 | project meeting | Mon 2pm | 4pm
+```
+
+Input:
+
+```text
+list
+bye
+```
+
+Expected output:
+
+```text
+Here are the tasks in your list:
+1.[T][X] read book
+2.[D][ ] return book (by: Sunday)
+3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+```

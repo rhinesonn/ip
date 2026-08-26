@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -117,9 +118,13 @@ public class Caitlyn {
         Task task = tasks.get(taskNumber - 1);
         if (markAsDone) {
             task.markAsDone();
-            System.out.println("     As you wish, master. I have marked this task as done:");
         } else {
             task.markAsNotDone();
+        }
+        saveTasks(tasks);
+        if (markAsDone) {
+            System.out.println("     As you wish, master. I have marked this task as done:");
+        } else {
             System.out.println("     Of course, master. I have marked this task as not done yet:");
         }
         System.out.println("       " + task);
@@ -152,6 +157,7 @@ public class Caitlyn {
         }
 
         Task removedTask = tasks.remove(taskNumber - 1);
+        saveTasks(tasks);
         System.out.println("     Noted. I've removed this task:");
         System.out.println("       " + removedTask);
         System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
@@ -163,11 +169,27 @@ public class Caitlyn {
      * @param tasks the current task list
      * @param task the task to add
      */
-    private static void addTask(List<Task> tasks, Task task) {
+    private static void addTask(List<Task> tasks, Task task) throws CaitlynException {
         tasks.add(task);
+        saveTasks(tasks);
         System.out.println("     Got it. I've added this task:");
         System.out.println("       " + task);
         System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
+    }
+
+    /**
+     * Saves the current task list and turns a file-system error into a user-facing error.
+     *
+     * @param tasks the current task list
+     * @throws CaitlynException if the task file cannot be written
+     */
+    private static void saveTasks(List<Task> tasks) throws CaitlynException {
+        try {
+            TaskStorage.save(tasks);
+        } catch (IOException exception) {
+            throw new CaitlynException(
+                    "I beg your pardon, master. I could not save your tasks to disk.");
+        }
     }
 
     /**

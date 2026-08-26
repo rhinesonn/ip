@@ -34,4 +34,9 @@ public class Deadline extends Task {
     protected String getTaskDetails() {
         return super.getTaskDetails() + " (by: " + by + ")";
     }
+
+    @Override
+    protected String getStorageDetails() {
+        return super.getStorageDetails() + " | " + by;
+    }
 }

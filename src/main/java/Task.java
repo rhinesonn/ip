@@ -47,6 +47,26 @@ public class Task {
     }
 
     /**
+     * Returns this task in the format used by the task file.
+     *
+     * @return a pipe-separated representation of this task
+     */
+    public String toStorageString() {
+        String doneMarker = done ? "1" : "0";
+        return getTaskType().getMarker() + " | " + doneMarker + " | " + getStorageDetails();
+    }
+
+    /**
+     * Returns the task fields that follow its type and completion marker.
+     * Subclasses add their own date or time fields.
+     *
+     * @return the task description and any type-specific storage fields
+     */
+    protected String getStorageDetails() {
+        return description;
+    }
+
+    /**
      * Returns the description of this task.
      *
      * @return the task description

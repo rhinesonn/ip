@@ -277,3 +277,32 @@ Expected output:
 I beg your pardon, master, but I could not find task 2.
 1.[T][ ] keep this task
 ```
+
+## Test case 13: Save task changes automatically
+
+Aim: Verify that adding, completing, and deleting tasks all use the automatic save path. After this case, `data/duke.txt` should contain the final task list in storage format.
+
+Input:
+
+```text
+todo read book
+deadline return book /by June 6th
+mark 1
+delete 2
+bye
+```
+
+Expected output:
+
+```text
+[T][ ] read book
+[D][ ] return book (by: June 6th)
+[T][X] read book
+Now you have 1 tasks in the list.
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+T | 1 | read book
+```

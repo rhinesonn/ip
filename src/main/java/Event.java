@@ -48,4 +48,9 @@ public class Event extends Task {
     protected String getTaskDetails() {
         return super.getTaskDetails() + " (from: " + from + " to: " + to + ")";
     }
+
+    @Override
+    protected String getStorageDetails() {
+        return super.getStorageDetails() + " | " + from + " | " + to;
+    }
 }

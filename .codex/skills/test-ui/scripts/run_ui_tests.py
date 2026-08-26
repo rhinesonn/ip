@@ -103,7 +103,7 @@ def command_version(command: str) -> str:
 
 def compile_sources(project_root: Path, javac: str, classes_dir: Path) -> None:
     """Compile all application sources into a temporary classes directory."""
-    sources = sorted((project_root / "src/main/java").glob("*.java"))
+    sources = sorted((project_root / "src/main/java").rglob("*.java"))
     if not sources:
         raise RuntimeError("No Java sources found in src/main/java")
     completed = subprocess.run(
@@ -138,7 +138,7 @@ def run_case(project_root: Path, java: str, classes_dir: Path, case: TestCase) -
             data_path.write_text("\n".join(case.initial_file_lines) + "\n", encoding="utf-8")
 
         completed = subprocess.run(
-            [java, "-cp", str(classes_dir), "Caitlyn"],
+            [java, "-cp", str(classes_dir), "caitlyn.Caitlyn"],
             cwd=case_path,
             input=case.input_text,
             capture_output=True,

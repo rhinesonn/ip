@@ -1,3 +1,5 @@
+package caitlyn;
+
 /**
  * The kinds of tasks that Caitlyn can store.
  *

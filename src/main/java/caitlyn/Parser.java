@@ -1,3 +1,5 @@
+package caitlyn;
+
 /**
  * Converts complete user commands into executable command objects.
  */

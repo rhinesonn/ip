@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * Entry point for the chatbot application.
@@ -14,52 +13,40 @@ public class Caitlyn {
      * @param args command-line arguments supplied when the program starts
      */
     public static void main(String[] args) {
-        String banner = "  ____      _ _   _             \n"
-                + " / ___|__ _(_) |_| |_   _ _ __  \n"
-                + "| |   / _` | | __| | | | | '_ \\ \n"
-                + "| |__| (_| | | |_| | |_| | | | |\n"
-                + " \\____\\__,_|_|\\__|_|\\__, |_| |_|\n"
-                + "                    |___/       \n";
-        String separator = "____________________________________________________________";
+        Ui ui = new Ui();
+        ui.showWelcome();
 
-        System.out.println(separator);
-        System.out.println(banner);
-        System.out.println("Good day, master. I am Caitlyn, humbly at your service.");
-        System.out.println("How may I serve you today?");
-        System.out.println(separator);
+        List<Task> tasks = loadTasks(ui);
+        while (ui.hasNextCommand()) {
+            String command = ui.readCommand();
 
-        List<Task> tasks = loadTasks();
-        Scanner scanner = new Scanner(System.in);
-        while (scanner.hasNextLine()) {
-            String command = scanner.nextLine().trim();
-
-            System.out.println(separator);
+            ui.showSeparator();
             try {
                 if ("bye".equals(command)) {
-                    System.out.println("     Farewell, master. It has been my pleasure to serve you.");
-                    System.out.println(separator);
+                    ui.showFarewell();
                     break;
                 }
 
-                handleCommand(command, tasks);
+                handleCommand(command, tasks, ui);
             } catch (CaitlynException exception) {
-                System.out.println("     " + exception.getMessage());
+                ui.showError(exception.getMessage());
             }
 
-            System.out.println(separator);
+            ui.showSeparator();
         }
     }
 
     /**
      * Loads the saved task list, falling back to an empty list when saved data cannot be read.
      *
+     * @param ui the UI used to report loading errors
      * @return the saved tasks or an empty task list
      */
-    private static List<Task> loadTasks() {
+    private static List<Task> loadTasks(Ui ui) {
         try {
             return TaskStorage.load();
         } catch (IOException | IllegalArgumentException exception) {
-            System.out.println("     I could not read the saved tasks, so I am starting with an empty list.");
+            ui.showLoadingError();
             return new ArrayList<>();
         }
     }
@@ -69,31 +56,29 @@ public class Caitlyn {
      *
      * @param command the trimmed command entered by the user
      * @param tasks the current task list
+     * @param ui the UI used to display command results
      * @throws CaitlynException when the command cannot be carried out
      */
-    private static void handleCommand(String command, List<Task> tasks) throws CaitlynException {
+    private static void handleCommand(String command, List<Task> tasks, Ui ui) throws CaitlynException {
         if ("list".equals(command)) {
-            System.out.println("     Here are the tasks in your list:");
-            for (int i = 0; i < tasks.size(); i++) {
-                System.out.println("     " + (i + 1) + "." + tasks.get(i));
-            }
+            ui.showTasks(tasks);
         } else if (command.equals("mark") || command.startsWith("mark ")) {
-            changeTaskStatus(command, tasks, true);
+            changeTaskStatus(command, tasks, true, ui);
         } else if (command.equals("unmark") || command.startsWith("unmark ")) {
-            changeTaskStatus(command, tasks, false);
+            changeTaskStatus(command, tasks, false, ui);
         } else if (command.equals("delete") || command.startsWith("delete ")) {
-            deleteTask(command, tasks);
+            deleteTask(command, tasks, ui);
         } else if (command.equals("todo") || command.startsWith("todo ")) {
             String description = command.substring("todo".length()).trim();
             if (description.isEmpty()) {
                 throw new CaitlynException(
                         "I beg your pardon, master. I cannot prepare a task without a description.");
             }
-            addTask(tasks, new Todo(description));
+            addTask(tasks, new Todo(description), ui);
         } else if (command.equals("deadline") || command.startsWith("deadline ")) {
-            addDeadline(tasks, command.substring("deadline".length()).trim());
+            addDeadline(tasks, command.substring("deadline".length()).trim(), ui);
         } else if (command.equals("event") || command.startsWith("event ")) {
-            addEvent(tasks, command.substring("event".length()).trim());
+            addEvent(tasks, command.substring("event".length()).trim(), ui);
         } else {
             throw new CaitlynException(
                     "I humbly beg your pardon, master. I do not know how to carry out that command.");
@@ -106,9 +91,10 @@ public class Caitlyn {
      * @param command the complete mark or unmark command
      * @param tasks the current task list
      * @param markAsDone whether the selected task should be marked as done
+     * @param ui the UI used to display the result
      * @throws CaitlynException when the command has no valid task number
      */
-    private static void changeTaskStatus(String command, List<Task> tasks, boolean markAsDone)
+    private static void changeTaskStatus(String command, List<Task> tasks, boolean markAsDone, Ui ui)
             throws CaitlynException {
         String commandName = markAsDone ? "mark" : "unmark";
         String[] commandParts = command.split("\\s+");
@@ -146,12 +132,7 @@ public class Caitlyn {
             }
             throw exception;
         }
-        if (markAsDone) {
-            System.out.println("     As you wish, master. I have marked this task as done:");
-        } else {
-            System.out.println("     Of course, master. I have marked this task as not done yet:");
-        }
-        System.out.println("       " + task);
+        ui.showTaskStatus(task, markAsDone);
     }
 
     /**
@@ -159,9 +140,10 @@ public class Caitlyn {
      *
      * @param command the complete delete command
      * @param tasks the current task list
+     * @param ui the UI used to display the result
      * @throws CaitlynException when the command has no valid task number
      */
-    private static void deleteTask(String command, List<Task> tasks) throws CaitlynException {
+    private static void deleteTask(String command, List<Task> tasks, Ui ui) throws CaitlynException {
         String[] commandParts = command.split("\\s+");
         if (commandParts.length != 2) {
             throw new CaitlynException("I beg your pardon, master. Please provide a task number, for example: "
@@ -187,9 +169,7 @@ public class Caitlyn {
             tasks.add(taskNumber - 1, removedTask);
             throw exception;
         }
-        System.out.println("     Noted. I've removed this task:");
-        System.out.println("       " + removedTask);
-        System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
+        ui.showTaskDeleted(removedTask, tasks.size());
     }
 
     /**
@@ -197,8 +177,9 @@ public class Caitlyn {
      *
      * @param tasks the current task list
      * @param task the task to add
+     * @param ui the UI used to display the result
      */
-    private static void addTask(List<Task> tasks, Task task) throws CaitlynException {
+    private static void addTask(List<Task> tasks, Task task, Ui ui) throws CaitlynException {
         tasks.add(task);
         try {
             saveTasks(tasks);
@@ -206,9 +187,7 @@ public class Caitlyn {
             tasks.remove(tasks.size() - 1);
             throw exception;
         }
-        System.out.println("     Got it. I've added this task:");
-        System.out.println("       " + task);
-        System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
+        ui.showTaskAdded(task, tasks.size());
     }
 
     /**
@@ -231,8 +210,9 @@ public class Caitlyn {
      *
      * @param tasks the current task list
      * @param command the part of the command after {@code deadline}
+     * @param ui the UI used to display the result
      */
-    private static void addDeadline(List<Task> tasks, String command) throws CaitlynException {
+    private static void addDeadline(List<Task> tasks, String command, Ui ui) throws CaitlynException {
         int markerIndex = command.indexOf("/by");
         if (markerIndex <= 0) {
             throw new CaitlynException(
@@ -246,7 +226,7 @@ public class Caitlyn {
                     "I beg your pardon, master. Please provide both a task description and a deadline.");
         }
         try {
-            addTask(tasks, new Deadline(description, by));
+            addTask(tasks, new Deadline(description, by), ui);
         } catch (IllegalArgumentException exception) {
             throw new CaitlynException(
                     "I beg your pardon, master. Please use a valid date such as 2019-10-15 or 2/12/2019 1800.");
@@ -258,8 +238,9 @@ public class Caitlyn {
      *
      * @param tasks the current task list
      * @param command the part of the command after {@code event}
+     * @param ui the UI used to display the result
      */
-    private static void addEvent(List<Task> tasks, String command) throws CaitlynException {
+    private static void addEvent(List<Task> tasks, String command, Ui ui) throws CaitlynException {
         int fromMarkerIndex = command.indexOf("/from");
         int toMarkerIndex = command.indexOf("/to");
         if (fromMarkerIndex <= 0 || toMarkerIndex <= fromMarkerIndex) {
@@ -275,7 +256,7 @@ public class Caitlyn {
                     "I beg your pardon, master. Please provide a description, start time, and end time for the event.");
         }
         try {
-            addTask(tasks, new Event(description, from, to));
+            addTask(tasks, new Event(description, from, to), ui);
         } catch (IllegalArgumentException exception) {
             throw new CaitlynException(
                     "I beg your pardon, master. Please use valid dates such as 2019-10-15 or 2/12/2019 1800.");

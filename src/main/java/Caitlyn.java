@@ -130,12 +130,22 @@ public class Caitlyn {
         }
 
         Task task = tasks.get(taskNumber - 1);
+        boolean wasDone = task.isDone();
         if (markAsDone) {
             task.markAsDone();
         } else {
             task.markAsNotDone();
         }
-        saveTasks(tasks);
+        try {
+            saveTasks(tasks);
+        } catch (CaitlynException exception) {
+            if (wasDone) {
+                task.markAsDone();
+            } else {
+                task.markAsNotDone();
+            }
+            throw exception;
+        }
         if (markAsDone) {
             System.out.println("     As you wish, master. I have marked this task as done:");
         } else {
@@ -171,7 +181,12 @@ public class Caitlyn {
         }
 
         Task removedTask = tasks.remove(taskNumber - 1);
-        saveTasks(tasks);
+        try {
+            saveTasks(tasks);
+        } catch (CaitlynException exception) {
+            tasks.add(taskNumber - 1, removedTask);
+            throw exception;
+        }
         System.out.println("     Noted. I've removed this task:");
         System.out.println("       " + removedTask);
         System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
@@ -185,7 +200,12 @@ public class Caitlyn {
      */
     private static void addTask(List<Task> tasks, Task task) throws CaitlynException {
         tasks.add(task);
-        saveTasks(tasks);
+        try {
+            saveTasks(tasks);
+        } catch (CaitlynException exception) {
+            tasks.remove(tasks.size() - 1);
+            throw exception;
+        }
         System.out.println("     Got it. I've added this task:");
         System.out.println("       " + task);
         System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
@@ -200,7 +220,7 @@ public class Caitlyn {
     private static void saveTasks(List<Task> tasks) throws CaitlynException {
         try {
             TaskStorage.save(tasks);
-        } catch (IOException exception) {
+        } catch (IOException | IllegalArgumentException | SecurityException exception) {
             throw new CaitlynException(
                     "I beg your pardon, master. I could not save your tasks to disk.");
         }

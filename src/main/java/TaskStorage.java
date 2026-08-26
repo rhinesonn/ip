@@ -1,7 +1,9 @@
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,17 +26,43 @@ public final class TaskStorage {
      * @throws IOException if the directory or file cannot be written
      */
     public static void save(List<Task> tasks) throws IOException {
+        if (tasks == null) {
+            throw new IllegalArgumentException("The task list cannot be null.");
+        }
         Files.createDirectories(TASK_FILE.getParent());
-        List<String> lines = tasks.stream()
-                .map(Task::toStorageString)
-                .toList();
-        Files.write(
-                TASK_FILE,
-                lines,
-                StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING,
-                StandardOpenOption.WRITE);
+        List<String> lines = new ArrayList<>();
+        for (Task task : tasks) {
+            if (task == null) {
+                throw new IllegalArgumentException("The task list cannot contain null tasks.");
+            }
+            lines.add(task.toStorageString());
+        }
+        Path temporaryFile = Files.createTempFile(
+                TASK_FILE.getParent(), TASK_FILE.getFileName().toString(), ".tmp");
+        boolean moved = false;
+        try {
+            Files.write(
+                    temporaryFile,
+                    lines,
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.WRITE);
+            try {
+                Files.move(
+                        temporaryFile,
+                        TASK_FILE,
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+                moved = true;
+            } catch (AtomicMoveNotSupportedException exception) {
+                Files.move(temporaryFile, TASK_FILE, StandardCopyOption.REPLACE_EXISTING);
+                moved = true;
+            }
+        } finally {
+            if (!moved) {
+                Files.deleteIfExists(temporaryFile);
+            }
+        }
     }
 
     /**
@@ -45,14 +73,22 @@ public final class TaskStorage {
      * @throws IllegalArgumentException if a saved line has an invalid format
      */
     public static List<Task> load() throws IOException {
-        if (!Files.exists(TASK_FILE)) {
+        if (Files.notExists(TASK_FILE)) {
             return new ArrayList<>();
         }
 
         List<Task> tasks = new ArrayList<>();
-        for (String line : Files.readAllLines(TASK_FILE, StandardCharsets.UTF_8)) {
+        List<String> lines = Files.readAllLines(TASK_FILE, StandardCharsets.UTF_8);
+        for (int index = 0; index < lines.size(); index++) {
+            String line = lines.get(index);
             if (!line.isBlank()) {
-                tasks.add(parseTask(line));
+                try {
+                    tasks.add(parseTask(line));
+                } catch (IllegalArgumentException exception) {
+                    throw new IllegalArgumentException(
+                            "Invalid saved task on line " + (index + 1) + ": " + exception.getMessage(),
+                            exception);
+                }
             }
         }
         return tasks;
@@ -66,33 +102,33 @@ public final class TaskStorage {
      * @throws IllegalArgumentException if the line is not valid storage data
      */
     private static Task parseTask(String line) {
-        String[] fields = line.trim().split("\\s*\\|\\s*", -1);
-        if (fields.length < 3) {
+        List<String> fields = splitFields(line);
+        if (fields.size() < 3) {
             throw new IllegalArgumentException("A saved task must have a type, status, and description.");
         }
 
-        boolean isDone = switch (fields[1]) {
+        boolean isDone = switch (fields.get(1)) {
         case "0" -> false;
         case "1" -> true;
         default -> throw new IllegalArgumentException("A saved task status must be 0 or 1.");
         };
 
         Task task;
-        switch (fields[0]) {
+        switch (fields.get(0)) {
         case "T":
             requireFieldCount(fields, 3);
-            task = new Todo(fields[2]);
+            task = new Todo(fields.get(2));
             break;
         case "D":
             requireFieldCount(fields, 4);
-            task = new Deadline(fields[2], fields[3]);
+            task = new Deadline(fields.get(2), fields.get(3));
             break;
         case "E":
             requireFieldCount(fields, 5);
-            task = new Event(fields[2], fields[3], fields[4]);
+            task = new Event(fields.get(2), fields.get(3), fields.get(4));
             break;
         default:
-            throw new IllegalArgumentException("Unknown saved task type: " + fields[0]);
+            throw new IllegalArgumentException("Unknown saved task type: " + fields.get(0));
         }
 
         if (isDone) {
@@ -108,10 +144,44 @@ public final class TaskStorage {
      * @param expectedCount the number of fields required by the task type
      * @throws IllegalArgumentException if there are too few or too many fields
      */
-    private static void requireFieldCount(String[] fields, int expectedCount) {
-        if (fields.length != expectedCount) {
+    private static void requireFieldCount(List<String> fields, int expectedCount) {
+        if (fields.size() != expectedCount) {
             throw new IllegalArgumentException("The saved task has the wrong number of fields.");
         }
     }
 
+    /**
+     * Splits a saved line while treating escaped pipes as part of a field.
+     *
+     * @param line the saved task line
+     * @return decoded and trimmed fields
+     * @throws IllegalArgumentException if the line ends with an incomplete escape
+     */
+    private static List<String> splitFields(String line) {
+        List<String> fields = new ArrayList<>();
+        StringBuilder field = new StringBuilder();
+        for (int index = 0; index < line.length(); index++) {
+            char character = line.charAt(index);
+            if (character == '|') {
+                fields.add(field.toString().trim());
+                field.setLength(0);
+            } else if (character == '\\') {
+                if (index + 1 >= line.length()) {
+                    throw new IllegalArgumentException("A saved task has an incomplete escape sequence.");
+                }
+                char escapedCharacter = line.charAt(++index);
+                switch (escapedCharacter) {
+                case '\\' -> field.append('\\');
+                case '|' -> field.append('|');
+                case 'n' -> field.append('\n');
+                case 'r' -> field.append('\r');
+                default -> field.append('\\').append(escapedCharacter);
+                }
+            } else {
+                field.append(character);
+            }
+        }
+        fields.add(field.toString().trim());
+        return fields;
+    }
 }

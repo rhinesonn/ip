@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A task that takes place between a start date/time and an end date/time.
  */
@@ -14,9 +17,13 @@ public class Event extends Task {
      * @param description the text describing the event
      * @param from the event's start date or time
      * @param to the event's end date or time
+     * @throws IllegalArgumentException if an event field is null
      */
     public Event(String description, String from, String to) {
         super(description);
+        if (from == null || to == null) {
+            throw new IllegalArgumentException("An event's start and end cannot be null.");
+        }
         this.from = from;
         this.to = to;
     }
@@ -50,7 +57,10 @@ public class Event extends Task {
     }
 
     @Override
-    protected String getStorageDetails() {
-        return super.getStorageDetails() + " | " + from + " | " + to;
+    protected List<String> getStorageFields() {
+        List<String> fields = new ArrayList<>(super.getStorageFields());
+        fields.add(from);
+        fields.add(to);
+        return fields;
     }
 }

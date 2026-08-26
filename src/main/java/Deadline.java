@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A task that must be completed by a specified date or time.
  */
@@ -10,9 +13,13 @@ public class Deadline extends Task {
      *
      * @param description the text describing the task
      * @param by the date or time by which the task should be completed
+     * @throws IllegalArgumentException if a task field is null
      */
     public Deadline(String description, String by) {
         super(description);
+        if (by == null) {
+            throw new IllegalArgumentException("A deadline cannot be null.");
+        }
         this.by = by;
     }
 
@@ -36,7 +43,9 @@ public class Deadline extends Task {
     }
 
     @Override
-    protected String getStorageDetails() {
-        return super.getStorageDetails() + " | " + by;
+    protected List<String> getStorageFields() {
+        List<String> fields = new ArrayList<>(super.getStorageFields());
+        fields.add(by);
+        return fields;
     }
 }

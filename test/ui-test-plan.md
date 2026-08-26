@@ -317,6 +317,7 @@ Initial data/duke.txt contents:
 T | 1 | read book
 D | 0 | return book | Sunday
 E | 0 | project meeting | Mon 2pm | 4pm
+T | 1 | path \\backup \| notes
 ```
 
 Input:
@@ -333,4 +334,84 @@ Here are the tasks in your list:
 1.[T][X] read book
 2.[D][ ] return book (by: Sunday)
 3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+4.[T][X] path \backup | notes
+```
+
+## Test case 15: Recover from malformed saved data
+
+Aim: Verify that an invalid saved record does not crash Caitlyn and that the chatbot starts with an empty usable list.
+
+Initial data/duke.txt contents:
+
+```text
+T | 2 | invalid status
+```
+
+Input:
+
+```text
+list
+bye
+```
+
+Expected output:
+
+```text
+I could not read the saved tasks, so I am starting with an empty list.
+Here are the tasks in your list:
+```
+
+## Test case 16: Preserve special characters during saving
+
+Aim: Verify that pipes and backslashes in task fields are escaped when saved instead of being mistaken for storage separators.
+
+Input:
+
+```text
+todo plan | review \backup
+deadline send | mail /by Friday | 5pm
+event call /from 10\am /to 11|am
+bye
+```
+
+Expected output:
+
+```text
+[T][ ] plan | review \backup
+[D][ ] send | mail (by: Friday | 5pm)
+[E][ ] call (from: 10\am to: 11|am)
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+T | 0 | plan \| review \\backup
+D | 0 | send \| mail | Friday \| 5pm
+E | 0 | call | 10\\am | 11\|am
+```
+
+## Test case 17: Start without an existing data file
+
+Aim: Verify that a first run works when both the `data` directory and `duke.txt` file are absent, then creates them when the first task is added.
+
+Input:
+
+```text
+list
+todo first-run task
+bye
+```
+
+Expected output:
+
+```text
+Here are the tasks in your list:
+[T][ ] first-run task
+Now you have 1 tasks in the list.
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+T | 0 | first-run task
 ```

@@ -277,3 +277,141 @@ Expected output:
 I beg your pardon, master, but I could not find task 2.
 1.[T][ ] keep this task
 ```
+
+## Test case 13: Save task changes automatically
+
+Aim: Verify that adding, completing, and deleting tasks all use the automatic save path. After this case, `data/duke.txt` should contain the final task list in storage format.
+
+Input:
+
+```text
+todo read book
+deadline return book /by June 6th
+mark 1
+delete 2
+bye
+```
+
+Expected output:
+
+```text
+[T][ ] read book
+[D][ ] return book (by: June 6th)
+[T][X] read book
+Now you have 1 tasks in the list.
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+T | 1 | read book
+```
+
+## Test case 14: Load saved tasks at startup
+
+Aim: Verify that ToDos, deadlines, events, and their saved completion statuses are restored when Caitlyn starts.
+
+Initial data/duke.txt contents:
+
+```text
+T | 1 | read book
+D | 0 | return book | Sunday
+E | 0 | project meeting | Mon 2pm | 4pm
+T | 1 | path \\backup \| notes
+```
+
+Input:
+
+```text
+list
+bye
+```
+
+Expected output:
+
+```text
+Here are the tasks in your list:
+1.[T][X] read book
+2.[D][ ] return book (by: Sunday)
+3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+4.[T][X] path \backup | notes
+```
+
+## Test case 15: Recover from malformed saved data
+
+Aim: Verify that an invalid saved record does not crash Caitlyn and that the chatbot starts with an empty usable list.
+
+Initial data/duke.txt contents:
+
+```text
+T | 2 | invalid status
+```
+
+Input:
+
+```text
+list
+bye
+```
+
+Expected output:
+
+```text
+I could not read the saved tasks, so I am starting with an empty list.
+Here are the tasks in your list:
+```
+
+## Test case 16: Preserve special characters during saving
+
+Aim: Verify that pipes and backslashes in task fields are escaped when saved instead of being mistaken for storage separators.
+
+Input:
+
+```text
+todo plan | review \backup
+deadline send | mail /by Friday | 5pm
+event call /from 10\am /to 11|am
+bye
+```
+
+Expected output:
+
+```text
+[T][ ] plan | review \backup
+[D][ ] send | mail (by: Friday | 5pm)
+[E][ ] call (from: 10\am to: 11|am)
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+T | 0 | plan \| review \\backup
+D | 0 | send \| mail | Friday \| 5pm
+E | 0 | call | 10\\am | 11\|am
+```
+
+## Test case 17: Start without an existing data file
+
+Aim: Verify that a first run works when both the `data` directory and `duke.txt` file are absent, then creates them when the first task is added.
+
+Input:
+
+```text
+list
+todo first-run task
+bye
+```
+
+Expected output:
+
+```text
+Here are the tasks in your list:
+[T][ ] first-run task
+Now you have 1 tasks in the list.
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+T | 0 | first-run task
+```

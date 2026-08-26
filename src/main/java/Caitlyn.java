@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -27,7 +28,7 @@ public class Caitlyn {
         System.out.println("How may I serve you today?");
         System.out.println(separator);
 
-        List<Task> tasks = new ArrayList<>();
+        List<Task> tasks = loadTasks();
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine().trim();
@@ -46,6 +47,20 @@ public class Caitlyn {
             }
 
             System.out.println(separator);
+        }
+    }
+
+    /**
+     * Loads the saved task list, falling back to an empty list when saved data cannot be read.
+     *
+     * @return the saved tasks or an empty task list
+     */
+    private static List<Task> loadTasks() {
+        try {
+            return TaskStorage.load();
+        } catch (IOException | IllegalArgumentException exception) {
+            System.out.println("     I could not read the saved tasks, so I am starting with an empty list.");
+            return new ArrayList<>();
         }
     }
 
@@ -115,11 +130,25 @@ public class Caitlyn {
         }
 
         Task task = tasks.get(taskNumber - 1);
+        boolean wasDone = task.isDone();
         if (markAsDone) {
             task.markAsDone();
-            System.out.println("     As you wish, master. I have marked this task as done:");
         } else {
             task.markAsNotDone();
+        }
+        try {
+            saveTasks(tasks);
+        } catch (CaitlynException exception) {
+            if (wasDone) {
+                task.markAsDone();
+            } else {
+                task.markAsNotDone();
+            }
+            throw exception;
+        }
+        if (markAsDone) {
+            System.out.println("     As you wish, master. I have marked this task as done:");
+        } else {
             System.out.println("     Of course, master. I have marked this task as not done yet:");
         }
         System.out.println("       " + task);
@@ -152,6 +181,12 @@ public class Caitlyn {
         }
 
         Task removedTask = tasks.remove(taskNumber - 1);
+        try {
+            saveTasks(tasks);
+        } catch (CaitlynException exception) {
+            tasks.add(taskNumber - 1, removedTask);
+            throw exception;
+        }
         System.out.println("     Noted. I've removed this task:");
         System.out.println("       " + removedTask);
         System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
@@ -163,11 +198,32 @@ public class Caitlyn {
      * @param tasks the current task list
      * @param task the task to add
      */
-    private static void addTask(List<Task> tasks, Task task) {
+    private static void addTask(List<Task> tasks, Task task) throws CaitlynException {
         tasks.add(task);
+        try {
+            saveTasks(tasks);
+        } catch (CaitlynException exception) {
+            tasks.remove(tasks.size() - 1);
+            throw exception;
+        }
         System.out.println("     Got it. I've added this task:");
         System.out.println("       " + task);
         System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
+    }
+
+    /**
+     * Saves the current task list and turns a file-system error into a user-facing error.
+     *
+     * @param tasks the current task list
+     * @throws CaitlynException if the task file cannot be written
+     */
+    private static void saveTasks(List<Task> tasks) throws CaitlynException {
+        try {
+            TaskStorage.save(tasks);
+        } catch (IOException | IllegalArgumentException | SecurityException exception) {
+            throw new CaitlynException(
+                    "I beg your pardon, master. I could not save your tasks to disk.");
+        }
     }
 
     /**

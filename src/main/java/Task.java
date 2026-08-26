@@ -1,3 +1,6 @@
+import java.util.List;
+import java.util.StringJoiner;
+
 /**
  * Represents one task in Caitlyn's task list.
  */
@@ -12,8 +15,12 @@ public class Task {
      * Creates a new incomplete task.
      *
      * @param description the text describing the task
+     * @throws IllegalArgumentException if the description is null
      */
     public Task(String description) {
+        if (description == null) {
+            throw new IllegalArgumentException("A task description cannot be null.");
+        }
         this.description = description;
         this.done = false;
     }
@@ -44,6 +51,48 @@ public class Task {
      */
     protected String getTaskDetails() {
         return description;
+    }
+
+    /**
+     * Returns this task in the format used by the task file.
+     *
+     * @return a pipe-separated representation of this task
+     */
+    public String toStorageString() {
+        String doneMarker = done ? "1" : "0";
+        StringJoiner fields = new StringJoiner(" | ");
+        fields.add(getTaskType().getMarker()).add(doneMarker);
+        for (String field : getStorageFields()) {
+            fields.add(escapeStorageField(field));
+        }
+        return fields.toString();
+    }
+
+    /**
+     * Returns the raw task fields that follow its type and completion marker.
+     * Subclasses add their own date or time fields.
+     *
+     * @return the task description and any type-specific storage fields
+     */
+    protected List<String> getStorageFields() {
+        return List.of(description);
+    }
+
+    /**
+     * Escapes a task field so pipes, backslashes, and line breaks remain data rather than structure.
+     *
+     * @param field the raw field value
+     * @return the escaped field value
+     * @throws IllegalArgumentException if the field is null
+     */
+    protected static String escapeStorageField(String field) {
+        if (field == null) {
+            throw new IllegalArgumentException("A task field cannot be null.");
+        }
+        return field.replace("\\", "\\\\")
+                .replace("|", "\\|")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n");
     }
 
     /**

@@ -20,12 +20,22 @@ class TestCase:
     name: str
     input_text: str
     expected_lines: list[str]
+    initial_file_lines: list[str] | None = None
+    expected_file_lines: list[str] | None = None
 
 
 CASE_PATTERN = re.compile(r"^## Test case \d+:\s*(.+)$", re.MULTILINE)
 BLOCK_PATTERN = re.compile(
     r"^Input:\s*\n```[^\n]*\n(?P<input>.*?)\n```\s*\n"
     r"Expected output:\s*\n```[^\n]*\n(?P<expected>.*?)\n```",
+    re.MULTILINE | re.DOTALL,
+)
+INITIAL_FILE_PATTERN = re.compile(
+    r"^Initial data/duke\.txt contents:\s*\n```[^\n]*\n(?P<data>.*?)\n```",
+    re.MULTILINE | re.DOTALL,
+)
+EXPECTED_FILE_PATTERN = re.compile(
+    r"^Expected `data/duke\.txt` contents after the case:\s*\n```[^\n]*\n(?P<data>.*?)\n```",
     re.MULTILINE | re.DOTALL,
 )
 
@@ -57,11 +67,24 @@ def parse_plan(plan_path: Path) -> list[TestCase]:
         if not expected_lines:
             raise ValueError(f"Test case '{case_match.group(1)}' has no expected output lines")
 
+        initial_file_match = INITIAL_FILE_PATTERN.search(section)
+        expected_file_match = EXPECTED_FILE_PATTERN.search(section)
+
         cases.append(
             TestCase(
                 name=case_match.group(1).strip(),
                 input_text=block_match.group("input"),
                 expected_lines=expected_lines,
+                initial_file_lines=(
+                    initial_file_match.group("data").splitlines()
+                    if initial_file_match is not None
+                    else None
+                ),
+                expected_file_lines=(
+                    expected_file_match.group("data").splitlines()
+                    if expected_file_match is not None
+                    else None
+                ),
             )
         )
     return cases
@@ -107,27 +130,45 @@ def check_expected_output(actual: str, expected_lines: list[str]) -> str | None:
 
 def run_case(project_root: Path, java: str, classes_dir: Path, case: TestCase) -> str:
     """Run one case and return its console output, or raise on failure."""
-    completed = subprocess.run(
-        [java, "-cp", str(classes_dir), "Caitlyn"],
-        cwd=project_root,
-        input=case.input_text,
-        capture_output=True,
-        text=True,
-        timeout=10,
-        check=False,
-    )
-    output = completed.stdout + completed.stderr
-    if completed.returncode != 0:
-        raise RuntimeError(f"Caitlyn exited with status {completed.returncode}")
-    missing = check_expected_output(output, case.expected_lines)
-    if missing is not None:
-        expected = "\n".join(case.expected_lines)
-        raise AssertionError(
-            f"Missing or out-of-order expected output: {missing!r}\n"
-            f"Expected lines:\n{expected}\n"
-            f"Actual console output:\n{output}"
+    with tempfile.TemporaryDirectory(prefix="caitlyn-case-") as case_dir:
+        case_path = Path(case_dir)
+        data_path = case_path / "data" / "duke.txt"
+        if case.initial_file_lines is not None:
+            data_path.parent.mkdir()
+            data_path.write_text("\n".join(case.initial_file_lines) + "\n", encoding="utf-8")
+
+        completed = subprocess.run(
+            [java, "-cp", str(classes_dir), "Caitlyn"],
+            cwd=case_path,
+            input=case.input_text,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
         )
-    return output
+        output = completed.stdout + completed.stderr
+        if completed.returncode != 0:
+            raise RuntimeError(f"Caitlyn exited with status {completed.returncode}")
+        missing = check_expected_output(output, case.expected_lines)
+        if missing is not None:
+            expected = "\n".join(case.expected_lines)
+            raise AssertionError(
+                f"Missing or out-of-order expected output: {missing!r}\n"
+                f"Expected lines:\n{expected}\n"
+                f"Actual console output:\n{output}"
+            )
+
+        if case.expected_file_lines is not None:
+            if not data_path.exists():
+                raise AssertionError("Expected data/duke.txt to be created")
+            actual_file_lines = data_path.read_text(encoding="utf-8").splitlines()
+            if actual_file_lines != case.expected_file_lines:
+                raise AssertionError(
+                    "Saved data/duke.txt did not match the expected contents:\n"
+                    f"Expected:\n{chr(10).join(case.expected_file_lines)}\n"
+                    f"Actual:\n{chr(10).join(actual_file_lines)}"
+                )
+        return output
 
 
 def main() -> int:

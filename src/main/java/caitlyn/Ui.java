@@ -85,6 +85,16 @@ public final class Ui {
         }
     }
 
+    /** Displays matching tasks while retaining their original list numbers. */
+    public void showMatchingTasks(List<Task> tasks, List<Task> matchingTasks) {
+        System.out.println("     Here are the matching tasks in your list:");
+        for (int index = 0; index < tasks.size(); index++) {
+            if (matchingTasks.contains(tasks.get(index))) {
+                System.out.println("     " + (index + 1) + "." + tasks.get(index));
+            }
+        }
+    }
+
     /** Displays confirmation after a task is added. */
     public void showTaskAdded(Task task, int taskCount) {
         System.out.println("     Got it. I've added this task:");

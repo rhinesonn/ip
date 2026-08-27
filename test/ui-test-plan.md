@@ -440,3 +440,19 @@ Expected output:
 Please use a valid date such as 2019-10-15 or 2/12/2019 1800.
 Here are the tasks in your list:
 ```
+
+## Test case 19: Exit immediately after the bye command
+
+Aim: Verify that Caitlyn stops without waiting for another input line after the user enters `bye`.
+
+Input:
+
+```text
+bye
+```
+
+Expected output:
+
+```text
+Farewell, master. It has been my pleasure to serve you.
+```

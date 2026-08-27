@@ -20,7 +20,7 @@ public class Caitlyn {
 
         List<Task> tasks = loadTasks(ui);
         boolean isExit = false;
-        while (ui.hasNextCommand() && !isExit) {
+        while (!isExit && ui.hasNextCommand()) {
             String fullCommand = ui.readCommand();
 
             ui.showSeparator();

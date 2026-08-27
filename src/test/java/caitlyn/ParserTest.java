@@ -10,6 +10,7 @@ class ParserTest {
     void parse_recognizesCommandsAndTrimsSurroundingWhitespace() {
         assertInstanceOf(ExitCommand.class, Parser.parse("  bye  "));
         assertInstanceOf(ListCommand.class, Parser.parse("list"));
+        assertInstanceOf(FindCommand.class, Parser.parse("find book"));
         assertInstanceOf(MarkCommand.class, Parser.parse("mark 1"));
         assertInstanceOf(MarkCommand.class, Parser.parse("unmark 1"));
         assertInstanceOf(DeleteCommand.class, Parser.parse("delete 1"));

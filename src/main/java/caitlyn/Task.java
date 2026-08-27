@@ -16,8 +16,8 @@ public class Task {
     /**
      * Creates a new incomplete task.
      *
-     * @param description the text describing the task
-     * @throws IllegalArgumentException if the description is null
+     * @param description the text describing the task.
+     * @throws IllegalArgumentException if the description is null.
      */
     public Task(String description) {
         if (description == null) {
@@ -40,7 +40,7 @@ public class Task {
     /**
      * Returns the kind of this task.
      *
-     * @return the task type
+     * @return the task type.
      */
     protected TaskType getTaskType() {
         return TaskType.TODO;
@@ -49,7 +49,7 @@ public class Task {
     /**
      * Returns the task description together with any type-specific details.
      *
-     * @return the text displayed after the task status
+     * @return the text displayed after the task status.
      */
     protected String getTaskDetails() {
         return description;
@@ -58,7 +58,7 @@ public class Task {
     /**
      * Returns this task in the format used by the task file.
      *
-     * @return a pipe-separated representation of this task
+     * @return a pipe-separated representation of this task.
      */
     public String toStorageString() {
         String doneMarker = done ? "1" : "0";
@@ -74,7 +74,7 @@ public class Task {
      * Returns the raw task fields that follow its type and completion marker.
      * Subclasses add their own date or time fields.
      *
-     * @return the task description and any type-specific storage fields
+     * @return the task description and any type-specific storage fields.
      */
     protected List<String> getStorageFields() {
         return List.of(description);
@@ -83,9 +83,9 @@ public class Task {
     /**
      * Escapes a task field so pipes, backslashes, and line breaks remain data rather than structure.
      *
-     * @param field the raw field value
-     * @return the escaped field value
-     * @throws IllegalArgumentException if the field is null
+     * @param field the raw field value.
+     * @return the escaped field value.
+     * @throws IllegalArgumentException if the field is null.
      */
     protected static String escapeStorageField(String field) {
         if (field == null) {
@@ -100,7 +100,7 @@ public class Task {
     /**
      * Returns the description of this task.
      *
-     * @return the task description
+     * @return the task description.
      */
     public String getDescription() {
         return description;
@@ -109,7 +109,7 @@ public class Task {
     /**
      * Returns whether this task has been completed.
      *
-     * @return {@code true} when the task is done
+     * @return {@code true} when the task is done.
      */
     public boolean isDone() {
         return done;
@@ -118,7 +118,7 @@ public class Task {
     /**
      * Returns the task in the format used when displaying the task list.
      *
-     * @return a status marker followed by the task description
+     * @return a status marker followed by the task description.
      */
     @Override
     public String toString() {

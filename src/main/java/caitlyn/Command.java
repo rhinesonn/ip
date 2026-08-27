@@ -7,19 +7,23 @@ import java.util.List;
  * Represents one command that Caitlyn can execute.
  */
 public abstract class Command {
+    /** Creates a command. */
+    public Command() {
+    }
+
     /**
      * Executes this command against the current task list.
      *
-     * @param tasks the current task list
-     * @param ui the UI used to display results
-     * @throws CaitlynException when the command cannot be carried out
+     * @param tasks the current task list.
+     * @param ui the UI used to display results.
+     * @throws CaitlynException when the command cannot be carried out.
      */
     public abstract void execute(List<Task> tasks, Ui ui) throws CaitlynException;
 
     /**
      * Returns whether this command ends the application.
      *
-     * @return {@code true} only for the exit command
+     * @return {@code true} only for the exit command.
      */
     public boolean isExit() {
         return false;
@@ -28,9 +32,9 @@ public abstract class Command {
     /**
      * Adds a task and saves the updated list, rolling back if saving fails.
      *
-     * @param tasks the current task list
-     * @param task the task to add
-     * @throws CaitlynException if the task cannot be saved
+     * @param tasks the current task list.
+     * @param task the task to add.
+     * @throws CaitlynException if the task cannot be saved.
      */
     protected final void addTask(List<Task> tasks, Task task) throws CaitlynException {
         tasks.add(task);
@@ -45,8 +49,8 @@ public abstract class Command {
     /**
      * Saves the current task list and turns a file-system error into a user-facing error.
      *
-     * @param tasks the current task list
-     * @throws CaitlynException if the task file cannot be written
+     * @param tasks the current task list.
+     * @throws CaitlynException if the task file cannot be written.
      */
     protected final void saveTasks(List<Task> tasks) throws CaitlynException {
         try {

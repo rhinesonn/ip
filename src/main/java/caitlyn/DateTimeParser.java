@@ -39,9 +39,9 @@ public final class DateTimeParser {
     /**
      * Parses a command date or date/time.
      *
-     * @param text the date or date/time entered by the user
-     * @return the parsed value and whether the input included a time
-     * @throws IllegalArgumentException if the input is not a supported date format
+     * @param text the date or date/time entered by the user.
+     * @return the parsed value and whether the input included a time.
+     * @throws IllegalArgumentException if the input is not a supported date format.
      */
     public static ParsedDateTime parse(String text) {
         if (text == null || text.isBlank()) {
@@ -77,8 +77,8 @@ public final class DateTimeParser {
     /**
      * Formats a parsed value for the task list.
      *
-     * @param parsedDateTime the parsed date/time value
-     * @return a readable date or date/time string
+     * @param parsedDateTime the parsed date/time value.
+     * @return a readable date or date/time string.
      */
     public static String formatForDisplay(ParsedDateTime parsedDateTime) {
         return formatForDisplay(parsedDateTime.value(), parsedDateTime.hasTime());
@@ -87,9 +87,9 @@ public final class DateTimeParser {
     /**
      * Formats a local date/time for display while preserving whether the user supplied a time.
      *
-     * @param value the local date/time value
-     * @param hasTime whether the original input included a time
-     * @return a readable date or date/time string
+     * @param value the local date/time value.
+     * @param hasTime whether the original input included a time.
+     * @return a readable date or date/time string.
      */
     public static String formatForDisplay(LocalDateTime value, boolean hasTime) {
         DateTimeFormatter formatter = hasTime ? DISPLAY_DATE_TIME : DISPLAY_DATE;
@@ -99,8 +99,8 @@ public final class DateTimeParser {
     /**
      * Formats a parsed value for persistence in the task file.
      *
-     * @param parsedDateTime the parsed date/time value
-     * @return a canonical ISO date or date/time string
+     * @param parsedDateTime the parsed date/time value.
+     * @return a canonical ISO date or date/time string.
      */
     public static String formatForStorage(ParsedDateTime parsedDateTime) {
         return formatForStorage(parsedDateTime.value(), parsedDateTime.hasTime());
@@ -109,9 +109,9 @@ public final class DateTimeParser {
     /**
      * Formats a local date/time for persistence while preserving date-only values.
      *
-     * @param value the local date/time value
-     * @param hasTime whether the original input included a time
-     * @return a canonical ISO date or date/time string
+     * @param value the local date/time value.
+     * @param hasTime whether the original input included a time.
+     * @return a canonical ISO date or date/time string.
      */
     public static String formatForStorage(LocalDateTime value, boolean hasTime) {
         return hasTime ? value.toString() : value.toLocalDate().toString();
@@ -120,21 +120,26 @@ public final class DateTimeParser {
     /**
      * Creates a strict formatter using the proleptic-year pattern required by {@code java.time}.
      *
-     * @param pattern the accepted input pattern
-     * @return a strict English formatter
+     * @param pattern the accepted input pattern.
+     * @return a strict English formatter.
      */
     private static DateTimeFormatter formatter(String pattern) {
         return DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
                 .withResolverStyle(ResolverStyle.STRICT);
     }
 
-    /** A parsed date/time together with whether the user supplied a time. */
+    /**
+     * A parsed date/time together with whether the user supplied a time.
+     *
+     * @param value the parsed local date/time.
+     * @param hasTime whether the original input included a time.
+     */
     public record ParsedDateTime(LocalDateTime value, boolean hasTime) {
         /**
          * Creates a parsed date/time result.
          *
-         * @param value the parsed local date/time
-         * @param hasTime whether the original input included a time
+         * @param value the parsed local date/time.
+         * @param hasTime whether the original input included a time.
          */
         public ParsedDateTime {
             if (value == null) {

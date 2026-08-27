@@ -9,7 +9,7 @@ public final class Parser {
     }
 
     /**
-     * Parses one complete command.
+     * Parses one complete command before dispatching it to a command object.
      *
      * @param fullCommand the command entered by the user
      * @return the command object representing the input

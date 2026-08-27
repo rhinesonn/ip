@@ -77,7 +77,7 @@ public final class Ui {
         System.out.println("     " + message);
     }
 
-    /** Displays all tasks with their one-based list numbers. */
+    /** Displays all tasks with their one-based list numbers for search results. */
     public void showTasks(List<Task> tasks) {
         System.out.println("     Here are the tasks in your list:");
         for (int index = 0; index < tasks.size(); index++) {

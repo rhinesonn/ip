@@ -23,7 +23,7 @@ public enum TaskType {
     /**
      * Creates a task type with its display marker.
      *
-     * @param marker the one-letter marker used in task output
+     * @param marker the one-letter marker used in task output.
      */
     TaskType(String marker) {
         this.marker = marker;
@@ -32,7 +32,7 @@ public enum TaskType {
     /**
      * Returns the marker used when displaying this task type.
      *
-     * @return the task type marker
+     * @return the task type marker.
      */
     public String getMarker() {
         return marker;

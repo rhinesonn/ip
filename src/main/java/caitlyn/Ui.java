@@ -29,7 +29,7 @@ public final class Ui {
     /**
      * Creates a UI with a supplied input source.
      *
-     * @param scanner source from which commands are read
+     * @param scanner source from which commands are read.
      */
     Ui(Scanner scanner) {
         if (scanner == null) {
@@ -47,12 +47,20 @@ public final class Ui {
         showSeparator();
     }
 
-    /** Returns whether another command is available. */
+    /**
+     * Returns whether another command is available.
+     *
+     * @return {@code true} when another input line can be read.
+     */
     public boolean hasNextCommand() {
         return scanner.hasNextLine();
     }
 
-    /** Reads and trims the next command. */
+    /**
+     * Reads and trims the next command.
+     *
+     * @return the next command without leading or trailing whitespace.
+     */
     public String readCommand() {
         return scanner.nextLine().trim();
     }
@@ -72,12 +80,20 @@ public final class Ui {
         showError("I could not read the saved tasks, so I am starting with an empty list.");
     }
 
-    /** Displays a user-facing command error. */
+    /**
+     * Displays a user-facing command error.
+     *
+     * @param message the error text to display.
+     */
     public void showError(String message) {
         System.out.println("     " + message);
     }
 
-    /** Displays all tasks with their one-based list numbers. */
+    /**
+     * Displays all tasks with their one-based list numbers.
+     *
+     * @param tasks the tasks to display.
+     */
     public void showTasks(List<Task> tasks) {
         System.out.println("     Here are the tasks in your list:");
         for (int index = 0; index < tasks.size(); index++) {
@@ -85,21 +101,36 @@ public final class Ui {
         }
     }
 
-    /** Displays confirmation after a task is added. */
+    /**
+     * Displays confirmation after a task is added.
+     *
+     * @param task the task that was added.
+     * @param taskCount the number of tasks after adding the task.
+     */
     public void showTaskAdded(Task task, int taskCount) {
         System.out.println("     Got it. I've added this task:");
         System.out.println("       " + task);
         System.out.println("     Now you have " + taskCount + " tasks in the list.");
     }
 
-    /** Displays confirmation after a task is deleted. */
+    /**
+     * Displays confirmation after a task is deleted.
+     *
+     * @param task the task that was deleted.
+     * @param taskCount the number of tasks after deleting the task.
+     */
     public void showTaskDeleted(Task task, int taskCount) {
         System.out.println("     Noted. I've removed this task:");
         System.out.println("       " + task);
         System.out.println("     Now you have " + taskCount + " tasks in the list.");
     }
 
-    /** Displays confirmation after a task's completion status changes. */
+    /**
+     * Displays confirmation after a task's completion status changes.
+     *
+     * @param task the task whose status changed.
+     * @param markAsDone whether the task was marked done rather than not done.
+     */
     public void showTaskStatus(Task task, boolean markAsDone) {
         if (markAsDone) {
             System.out.println("     As you wish, master. I have marked this task as done:");

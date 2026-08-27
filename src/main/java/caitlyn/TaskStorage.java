@@ -24,8 +24,8 @@ public final class TaskStorage {
     /**
      * Replaces the saved task list with the current tasks.
      *
-     * @param tasks the tasks to save
-     * @throws IOException if the directory or file cannot be written
+     * @param tasks the tasks to save.
+     * @throws IOException if the directory or file cannot be written.
      */
     public static void save(List<Task> tasks) throws IOException {
         if (tasks == null) {
@@ -41,7 +41,7 @@ public final class TaskStorage {
         }
         Path temporaryFile = Files.createTempFile(
                 TASK_FILE.getParent(), TASK_FILE.getFileName().toString(), ".tmp");
-        boolean moved = false;
+        boolean hasMoved = false;
         try {
             Files.write(
                     temporaryFile,
@@ -55,13 +55,13 @@ public final class TaskStorage {
                         TASK_FILE,
                         StandardCopyOption.ATOMIC_MOVE,
                         StandardCopyOption.REPLACE_EXISTING);
-                moved = true;
+                hasMoved = true;
             } catch (AtomicMoveNotSupportedException exception) {
                 Files.move(temporaryFile, TASK_FILE, StandardCopyOption.REPLACE_EXISTING);
-                moved = true;
+                hasMoved = true;
             }
         } finally {
-            if (!moved) {
+            if (!hasMoved) {
                 Files.deleteIfExists(temporaryFile);
             }
         }
@@ -70,9 +70,9 @@ public final class TaskStorage {
     /**
      * Loads all saved tasks from the local data file.
      *
-     * @return the saved tasks, or an empty list when no data file exists
-     * @throws IOException if the data file cannot be read
-     * @throws IllegalArgumentException if a saved line has an invalid format
+     * @return the saved tasks, or an empty list when no data file exists.
+     * @throws IOException if the data file cannot be read.
+     * @throws IllegalArgumentException if a saved line has an invalid format.
      */
     public static List<Task> load() throws IOException {
         if (Files.notExists(TASK_FILE)) {
@@ -99,9 +99,9 @@ public final class TaskStorage {
     /**
      * Converts one saved line into a task object.
      *
-     * @param line the pipe-separated task line
-     * @return the task represented by the line
-     * @throws IllegalArgumentException if the line is not valid storage data
+     * @param line the pipe-separated task line.
+     * @return the task represented by the line.
+     * @throws IllegalArgumentException if the line is not valid storage data.
      */
     private static Task parseTask(String line) {
         List<String> fields = splitFields(line);
@@ -142,9 +142,9 @@ public final class TaskStorage {
     /**
      * Ensures a parsed task has exactly the fields required by its type.
      *
-     * @param fields the fields parsed from a saved line
-     * @param expectedCount the number of fields required by the task type
-     * @throws IllegalArgumentException if there are too few or too many fields
+     * @param fields the fields parsed from a saved line.
+     * @param expectedCount the number of fields required by the task type.
+     * @throws IllegalArgumentException if there are too few or too many fields.
      */
     private static void requireFieldCount(List<String> fields, int expectedCount) {
         if (fields.size() != expectedCount) {
@@ -155,9 +155,9 @@ public final class TaskStorage {
     /**
      * Splits a saved line while treating escaped pipes as part of a field.
      *
-     * @param line the saved task line
-     * @return decoded and trimmed fields
-     * @throws IllegalArgumentException if the line ends with an incomplete escape
+     * @param line the saved task line.
+     * @return decoded and trimmed fields.
+     * @throws IllegalArgumentException if the line ends with an incomplete escape.
      */
     private static List<String> splitFields(String line) {
         List<String> fields = new ArrayList<>();

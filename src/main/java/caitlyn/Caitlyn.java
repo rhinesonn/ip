@@ -8,11 +8,15 @@ import java.util.List;
  * Entry point for the chatbot application.
  */
 public class Caitlyn {
+    /** Creates the application entry-point object. */
+    public Caitlyn() {
+    }
+
     /**
      * Starts the application, accepts tasks, displays the task list, and exits
      * when the user enters {@code bye}.
      *
-     * @param args command-line arguments supplied when the program starts
+     * @param args command-line arguments supplied when the program starts.
      */
     public static void main(String[] args) {
         Ui ui = new Ui();
@@ -39,8 +43,8 @@ public class Caitlyn {
     /**
      * Loads the saved task list, falling back to an empty list when saved data cannot be read.
      *
-     * @param ui the UI used to report loading errors
-     * @return the saved tasks or an empty task list
+     * @param ui the UI used to report loading errors.
+     * @return the saved tasks or an empty task list.
      */
     private static List<Task> loadTasks(Ui ui) {
         try {

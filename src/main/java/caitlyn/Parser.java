@@ -11,8 +11,8 @@ public final class Parser {
     /**
      * Parses one complete command.
      *
-     * @param fullCommand the command entered by the user
-     * @return the command object representing the input
+     * @param fullCommand the command entered by the user.
+     * @return the command object representing the input.
      */
     public static Command parse(String fullCommand) {
         String command = fullCommand.trim();

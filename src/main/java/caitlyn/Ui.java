@@ -102,6 +102,21 @@ public final class Ui {
     }
 
     /**
+     * Displays matching tasks while retaining their original list numbers.
+     *
+     * @param tasks all tasks in their original list order.
+     * @param matchingTasks tasks whose descriptions matched the search keyword.
+     */
+    public void showMatchingTasks(List<Task> tasks, List<Task> matchingTasks) {
+        System.out.println("     Here are the matching tasks in your list:");
+        for (int index = 0; index < tasks.size(); index++) {
+            if (matchingTasks.contains(tasks.get(index))) {
+                System.out.println("     " + (index + 1) + "." + tasks.get(index));
+            }
+        }
+    }
+
+    /**
      * Displays confirmation after a task is added.
      *
      * @param task the task that was added.

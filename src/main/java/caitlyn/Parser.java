@@ -9,7 +9,7 @@ public final class Parser {
     }
 
     /**
-     * Parses one complete command.
+     * Parses one complete command before dispatching it to a command object.
      *
      * @param fullCommand the command entered by the user.
      * @return the command object representing the input.
@@ -20,6 +20,8 @@ public final class Parser {
             return new ExitCommand();
         } else if ("list".equals(command)) {
             return new ListCommand();
+        } else if (command.equals("find") || command.startsWith("find ")) {
+            return new FindCommand(command.substring("find".length()).trim());
         } else if (command.equals("mark") || command.startsWith("mark ")) {
             return new MarkCommand(command, true);
         } else if (command.equals("unmark") || command.startsWith("unmark ")) {

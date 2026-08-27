@@ -456,3 +456,45 @@ Expected output:
 ```text
 Farewell, master. It has been my pleasure to serve you.
 ```
+
+## Test case 20: Find tasks by keyword
+
+Aim: Verify that a keyword search is case-insensitive, returns only matching descriptions, preserves the original task numbers, and displays all task types in their normal format.
+
+Input:
+
+```text
+todo read book
+deadline return book /by 2019-06-06
+todo buy milk
+find BOOK
+bye
+```
+
+Expected output:
+
+```text
+Here are the matching tasks in your list:
+1.[T][ ] read book
+2.[D][ ] return book (by: Jun 6 2019)
+```
+
+## Test case 21: Reject a find command without a keyword
+
+Aim: Verify that a find command without a keyword is rejected and does not affect the task list.
+
+Input:
+
+```text
+todo keep this task
+find
+list
+bye
+```
+
+Expected output:
+
+```text
+Please provide a keyword, for example: find book.
+1.[T][ ] keep this task
+```

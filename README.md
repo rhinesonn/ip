@@ -23,4 +23,48 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
                        |___/       
    ```
 
+## Building and running a fat JAR
+
+The project uses the [Shadow Gradle plugin](https://gradleup.com/shadow/) to package Caitlyn and its runtime dependencies into one executable JAR. The application entry point is configured as `caitlyn.Caitlyn` in `build.gradle`.
+
+### Create the JAR
+
+Make sure Java 25 is active before building. On macOS with SDKMAN, run:
+
+```bash
+sdk use java 25.0.3.fx-zulu
+```
+
+From the project root, run:
+
+```bash
+./gradlew clean shadowJar
+```
+
+On Windows, use `gradlew.bat clean shadowJar` instead.
+
+Gradle writes the fat JAR to:
+
+```text
+build/libs/caitlyn.jar
+```
+
+The `clean` part removes previous build output; `shadowJar` then creates a fresh JAR containing the application and its runtime dependencies. The ordinary dependency-free `jar` task is disabled because this project uses the Shadow JAR as its distributable artifact.
+
+### Run the JAR
+
+From the project root, run:
+
+```bash
+java -jar build/libs/caitlyn.jar
+```
+
+On Windows, the path uses backslashes:
+
+```text
+java -jar build\libs\caitlyn.jar
+```
+
+Type Caitlyn commands such as `todo borrow book` or `list`, and enter `bye` to exit. If the JAR has not been created yet, run the `shadowJar` command above first.
+
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.

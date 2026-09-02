@@ -110,27 +110,27 @@ public final class TaskStorage {
         }
 
         boolean isDone = switch (fields.get(1)) {
-        case "0" -> false;
-        case "1" -> true;
-        default -> throw new IllegalArgumentException("A saved task status must be 0 or 1.");
+            case "0" -> false;
+            case "1" -> true;
+            default -> throw new IllegalArgumentException("A saved task status must be 0 or 1.");
         };
 
         Task task;
         switch (fields.get(0)) {
-        case "T":
-            requireFieldCount(fields, 3);
-            task = new Todo(fields.get(2));
-            break;
-        case "D":
-            requireFieldCount(fields, 4);
-            task = new Deadline(fields.get(2), fields.get(3));
-            break;
-        case "E":
-            requireFieldCount(fields, 5);
-            task = new Event(fields.get(2), fields.get(3), fields.get(4));
-            break;
-        default:
-            throw new IllegalArgumentException("Unknown saved task type: " + fields.get(0));
+            case "T":
+                requireFieldCount(fields, 3);
+                task = new Todo(fields.get(2));
+                break;
+            case "D":
+                requireFieldCount(fields, 4);
+                task = new Deadline(fields.get(2), fields.get(3));
+                break;
+            case "E":
+                requireFieldCount(fields, 5);
+                task = new Event(fields.get(2), fields.get(3), fields.get(4));
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown saved task type: " + fields.get(0));
         }
 
         if (isDone) {
@@ -173,11 +173,11 @@ public final class TaskStorage {
                 }
                 char escapedCharacter = line.charAt(++index);
                 switch (escapedCharacter) {
-                case '\\' -> field.append('\\');
-                case '|' -> field.append('|');
-                case 'n' -> field.append('\n');
-                case 'r' -> field.append('\r');
-                default -> field.append('\\').append(escapedCharacter);
+                    case '\\' -> field.append('\\');
+                    case '|' -> field.append('|');
+                    case 'n' -> field.append('\n');
+                    case 'r' -> field.append('\r');
+                    default -> field.append('\\').append(escapedCharacter);
                 }
             } else {
                 field.append(character);

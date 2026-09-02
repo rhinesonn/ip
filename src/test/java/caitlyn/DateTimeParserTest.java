@@ -67,7 +67,6 @@ class DateTimeParserTest {
 
     @Test
     void parsedDateTime_rejectsNullValue() {
-        assertThrows(IllegalArgumentException.class,
-                () -> new DateTimeParser.ParsedDateTime(null, false));
+        assertThrows(IllegalArgumentException.class, () -> new DateTimeParser.ParsedDateTime(null, false));
     }
 }

@@ -81,8 +81,7 @@ class TaskStorageTest {
         List<Task> tasksWithNull = new ArrayList<>();
         tasksWithNull.add(new Todo("valid"));
         tasksWithNull.add(null);
-        assertThrows(IllegalArgumentException.class,
-                () -> TaskStorage.save(tasksWithNull));
+        assertThrows(IllegalArgumentException.class, () -> TaskStorage.save(tasksWithNull));
     }
 
     @Test

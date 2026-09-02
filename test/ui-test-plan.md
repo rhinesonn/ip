@@ -4,6 +4,8 @@ The `test-ui` skill runs each case in a fresh Caitlyn process. Expected output l
 
 The state-sensitive cases below deliberately interleave valid and invalid commands. Their later `list` and status assertions verify that rejected inputs do not corrupt the task list.
 
+The cases below exercise the command-line entry point. For the JavaFX entry point, perform this manual smoke check after running `./gradlew run`: enter `todo buy milk`, press Enter, enter `list` and click **Send**, then enter `bye`. The transcript should show the user commands, the added task, the task list, and Caitlyn's farewell; the task count should change from `0 tasks saved` to `1 task saved`, and the input field and Send button should be disabled after `bye`.
+
 ## Test case 1: Add and list a ToDo
 
 Aim: Verify that a date-free task is stored, displayed with the `T` type marker, and included in the task count.

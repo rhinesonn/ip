@@ -7,15 +7,15 @@ import java.util.List;
  */
 public final class DeadlineCommand extends Command {
     /** The text after the {@code deadline} command name. */
-    private final String command;
+    private final String commandArguments;
 
     /**
      * Creates a deadline command with its unparsed arguments.
      *
-     * @param command the text containing the task description and deadline.
+     * @param commandArguments the text containing the task description and deadline.
      */
-    public DeadlineCommand(String command) {
-        this.command = command;
+    public DeadlineCommand(String commandArguments) {
+        this.commandArguments = commandArguments;
     }
 
     /**
@@ -27,15 +27,15 @@ public final class DeadlineCommand extends Command {
      */
     @Override
     public void execute(List<Task> tasks, Ui ui) throws CaitlynException {
-        int markerIndex = command.indexOf("/by");
+        int markerIndex = commandArguments.indexOf("/by");
         if (markerIndex <= 0) {
             throw new CaitlynException(
                     "I beg your pardon, master. Please provide a deadline in the format: "
                             + "deadline task /by date.");
         }
 
-        String description = command.substring(0, markerIndex).trim();
-        String by = command.substring(markerIndex + "/by".length()).trim();
+        String description = commandArguments.substring(0, markerIndex).trim();
+        String by = commandArguments.substring(markerIndex + "/by".length()).trim();
         if (description.isEmpty() || by.isEmpty()) {
             throw new CaitlynException(
                     "I beg your pardon, master. Please provide both a task description and a deadline.");

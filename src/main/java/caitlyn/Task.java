@@ -11,7 +11,7 @@ public class Task {
     private final String description;
 
     /** Whether this task has been completed. */
-    private boolean done;
+    private boolean isDone;
 
     /**
      * Creates a new incomplete task.
@@ -24,17 +24,17 @@ public class Task {
             throw new IllegalArgumentException("A task description cannot be null.");
         }
         this.description = description;
-        this.done = false;
+        this.isDone = false;
     }
 
     /** Marks this task as completed. */
     public void markAsDone() {
-        done = true;
+        isDone = true;
     }
 
     /** Marks this task as incomplete again. */
     public void markAsNotDone() {
-        done = false;
+        isDone = false;
     }
 
     /**
@@ -61,7 +61,7 @@ public class Task {
      * @return a pipe-separated representation of this task.
      */
     public String toStorageString() {
-        String doneMarker = done ? "1" : "0";
+        String doneMarker = isDone ? "1" : "0";
         StringJoiner fields = new StringJoiner(" | ");
         fields.add(getTaskType().getMarker()).add(doneMarker);
         for (String field : getStorageFields()) {
@@ -112,7 +112,7 @@ public class Task {
      * @return {@code true} when the task is done.
      */
     public boolean isDone() {
-        return done;
+        return isDone;
     }
 
     /**
@@ -122,7 +122,7 @@ public class Task {
      */
     @Override
     public String toString() {
-        String status = done ? "X" : " ";
+        String status = isDone ? "X" : " ";
         return "[" + getTaskType().getMarker() + "][" + status + "] " + getTaskDetails();
     }
 }

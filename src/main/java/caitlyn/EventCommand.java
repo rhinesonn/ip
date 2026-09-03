@@ -7,15 +7,15 @@ import java.util.List;
  */
 public final class EventCommand extends Command {
     /** The text after the {@code event} command name. */
-    private final String command;
+    private final String commandArguments;
 
     /**
      * Creates an event command with its unparsed arguments.
      *
-     * @param command the text containing the event description and date range.
+     * @param commandArguments the text containing the event description and date range.
      */
-    public EventCommand(String command) {
-        this.command = command;
+    public EventCommand(String commandArguments) {
+        this.commandArguments = commandArguments;
     }
 
     /**
@@ -27,17 +27,18 @@ public final class EventCommand extends Command {
      */
     @Override
     public void execute(List<Task> tasks, Ui ui) throws CaitlynException {
-        int fromMarkerIndex = command.indexOf("/from");
-        int toMarkerIndex = command.indexOf("/to");
+        int fromMarkerIndex = commandArguments.indexOf("/from");
+        int toMarkerIndex = commandArguments.indexOf("/to");
         if (fromMarkerIndex <= 0 || toMarkerIndex <= fromMarkerIndex) {
             throw new CaitlynException(
                     "I beg your pardon, master. Please provide an event in the format: "
                             + "event task /from start /to end.");
         }
 
-        String description = command.substring(0, fromMarkerIndex).trim();
-        String from = command.substring(fromMarkerIndex + "/from".length(), toMarkerIndex).trim();
-        String to = command.substring(toMarkerIndex + "/to".length()).trim();
+        String description = commandArguments.substring(0, fromMarkerIndex).trim();
+        String from = commandArguments.substring(fromMarkerIndex + "/from".length(), toMarkerIndex)
+                .trim();
+        String to = commandArguments.substring(toMarkerIndex + "/to".length()).trim();
         if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
             throw new CaitlynException(
                     "I beg your pardon, master. Please provide a description, start time, "

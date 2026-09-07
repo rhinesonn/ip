@@ -1,6 +1,5 @@
 package caitlyn;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -29,16 +28,12 @@ public final class FindCommand extends Command {
      * Returns tasks whose descriptions contain the keyword, ignoring letter case.
      *
      * @param tasks the tasks to search
-     * @return matching tasks in their original list order
+     * @return matching tasks in their original list order.
      */
     List<Task> findMatchingTasks(List<Task> tasks) {
         String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
-        List<Task> matchingTasks = new ArrayList<>();
-        for (Task task : tasks) {
-            if (task.getDescription().toLowerCase(Locale.ROOT).contains(normalizedKeyword)) {
-                matchingTasks.add(task);
-            }
-        }
-        return matchingTasks;
+        return tasks.stream()
+                .filter(task -> task.getDescription().toLowerCase(Locale.ROOT).contains(normalizedKeyword))
+                .toList();
     }
 }

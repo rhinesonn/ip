@@ -37,4 +37,20 @@ public enum TaskType {
     public String getMarker() {
         return marker;
     }
+
+    /**
+     * Returns the task type represented by a storage marker.
+     *
+     * @param marker the marker read from the task file.
+     * @return the matching task type.
+     * @throws IllegalArgumentException if the marker is not recognized.
+     */
+    public static TaskType fromMarker(String marker) {
+        for (TaskType taskType : values()) {
+            if (taskType.marker.equals(marker)) {
+                return taskType;
+            }
+        }
+        throw new IllegalArgumentException("Unknown saved task type: " + marker);
+    }
 }

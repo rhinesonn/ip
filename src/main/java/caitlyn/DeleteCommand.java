@@ -27,32 +27,12 @@ public final class DeleteCommand extends Command {
      */
     @Override
     public void execute(List<Task> tasks, Ui ui) throws CaitlynException {
-        String[] commandParts = command.split("\\s+");
-        if (commandParts.length != 2) {
-            throw new CaitlynException(
-                    "I beg your pardon, master. Please provide a task number, for example: "
-                            + "delete 2.");
-        }
-
-        int taskNumber;
-        try {
-            taskNumber = Integer.parseInt(commandParts[1]);
-        } catch (NumberFormatException exception) {
-            throw new CaitlynException(
-                    "I beg your pardon, master. Please provide a valid task number, for example: "
-                            + "delete 2.");
-        }
-
-        if (taskNumber < 1 || taskNumber > tasks.size()) {
-            throw new CaitlynException(
-                    "I beg your pardon, master, but I could not find task " + taskNumber + ".");
-        }
-
-        Task removedTask = tasks.remove(taskNumber - 1);
+        int taskIndex = parseTaskIndex(command, "delete", tasks);
+        Task removedTask = tasks.remove(taskIndex);
         try {
             saveTasks(tasks);
         } catch (CaitlynException exception) {
-            tasks.add(taskNumber - 1, removedTask);
+            tasks.add(taskIndex, removedTask);
             throw exception;
         }
         ui.showTaskDeleted(removedTask, tasks.size());

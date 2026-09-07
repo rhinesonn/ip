@@ -115,23 +115,22 @@ public final class TaskStorage {
             default -> throw new IllegalArgumentException("A saved task status must be 0 or 1.");
         };
 
-        Task task;
-        switch (fields.get(0)) {
-            case "T":
+        TaskType taskType = TaskType.fromMarker(fields.get(0));
+        Task task = switch (taskType) {
+            case TODO -> {
                 requireFieldCount(fields, 3);
-                task = new Todo(fields.get(2));
-                break;
-            case "D":
+                yield new Todo(fields.get(2));
+            }
+            case DEADLINE -> {
                 requireFieldCount(fields, 4);
-                task = new Deadline(fields.get(2), fields.get(3));
-                break;
-            case "E":
+                yield new Deadline(fields.get(2), fields.get(3));
+            }
+            case EVENT -> {
                 requireFieldCount(fields, 5);
-                task = new Event(fields.get(2), fields.get(3), fields.get(4));
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown saved task type: " + fields.get(0));
-        }
+                yield new Event(fields.get(2), fields.get(3), fields.get(4));
+            }
+            default -> throw new IllegalStateException("Unhandled task type: " + taskType);
+        };
 
         if (isDone) {
             task.markAsDone();

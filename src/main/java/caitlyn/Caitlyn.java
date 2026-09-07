@@ -27,9 +27,14 @@ public class Caitlyn {
         while (!isExit && ui.hasNextCommand()) {
             String fullCommand = ui.readCommand();
 
+            assert fullCommand != null
+                    : "The UI should provide a command when input is available.";
+
             ui.showSeparator();
             try {
                 Command command = Parser.parse(fullCommand);
+                assert command != null
+                        : "The parser should return a command for every input.";
                 command.execute(tasks, ui);
                 isExit = command.isExit();
             } catch (CaitlynException exception) {

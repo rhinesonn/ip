@@ -33,28 +33,8 @@ public final class MarkCommand extends Command {
     @Override
     public void execute(List<Task> tasks, Ui ui) throws CaitlynException {
         String commandName = markAsDone ? "mark" : "unmark";
-        String[] commandParts = command.split("\\s+");
-        if (commandParts.length != 2) {
-            throw new CaitlynException(
-                    "I beg your pardon, master. Please provide a task number, for example: "
-                            + commandName + " 2.");
-        }
-
-        int taskNumber;
-        try {
-            taskNumber = Integer.parseInt(commandParts[1]);
-        } catch (NumberFormatException exception) {
-            throw new CaitlynException(
-                    "I beg your pardon, master. Please provide a valid task number, for example: "
-                            + commandName + " 2.");
-        }
-
-        if (taskNumber < 1 || taskNumber > tasks.size()) {
-            throw new CaitlynException(
-                    "I beg your pardon, master, but I could not find task " + taskNumber + ".");
-        }
-
-        Task task = tasks.get(taskNumber - 1);
+        int taskIndex = parseTaskIndex(command, commandName, tasks);
+        Task task = tasks.get(taskIndex);
         boolean wasDone = task.isDone();
         if (markAsDone) {
             task.markAsDone();

@@ -60,4 +60,38 @@ public abstract class Command {
                     "I beg your pardon, master. I could not save your tasks to disk.");
         }
     }
+
+    /**
+     * Parses and validates the one-based task number in a command.
+     *
+     * @param command the complete command entered by the user.
+     * @param commandName the command name used in validation examples.
+     * @param tasks the current task list.
+     * @return the zero-based index of the selected task.
+     * @throws CaitlynException if the command does not contain a valid task number.
+     */
+    protected final int parseTaskIndex(String command, String commandName, List<Task> tasks)
+            throws CaitlynException {
+        String[] commandParts = command.split("\\s+");
+        if (commandParts.length != 2) {
+            throw new CaitlynException(
+                    "I beg your pardon, master. Please provide a task number, for example: "
+                            + commandName + " 2.");
+        }
+
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(commandParts[1]);
+        } catch (NumberFormatException exception) {
+            throw new CaitlynException(
+                    "I beg your pardon, master. Please provide a valid task number, for example: "
+                            + commandName + " 2.");
+        }
+
+        if (taskNumber < 1 || taskNumber > tasks.size()) {
+            throw new CaitlynException(
+                    "I beg your pardon, master, but I could not find task " + taskNumber + ".");
+        }
+        return taskNumber - 1;
+    }
 }

@@ -42,7 +42,16 @@ test {
 }
 
 application {
-    mainClass = 'caitlyn.Caitlyn'
+    mainClass = 'caitlyn.Launcher'
+    applicationDefaultJvmArgs = ['--add-modules=javafx.controls']
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.addAll(['--add-modules', 'javafx.controls'])
+}
+
+tasks.withType(JavaExec).configureEach {
+    jvmArgs '--add-modules=javafx.controls'
 }
 
 jar {

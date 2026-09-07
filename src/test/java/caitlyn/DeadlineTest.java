@@ -36,8 +36,7 @@ class DeadlineTest {
         assertThrows(IllegalArgumentException.class, () -> new Deadline(null, "2025-03-14"));
         assertThrows(IllegalArgumentException.class, () -> new Deadline("task", (String) null));
         assertThrows(IllegalArgumentException.class, () -> new Deadline("task", (LocalDate) null));
-        assertThrows(IllegalArgumentException.class,
-                () -> new Deadline("task", (LocalDateTime) null));
+        assertThrows(IllegalArgumentException.class, () -> new Deadline("task", (LocalDateTime) null));
         assertThrows(IllegalArgumentException.class, () -> new Deadline("task", "2025-02-30"));
     }
 }

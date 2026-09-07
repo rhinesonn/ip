@@ -38,21 +38,17 @@ class EventTest {
 
     @Test
     void event_rejectsNullArgumentsAndInvalidDateText() {
-        assertThrows(IllegalArgumentException.class,
-                () -> new Event(null, "2025-03-14", "2025-03-16"));
-        assertThrows(IllegalArgumentException.class,
-                () -> new Event("event", (String) null, "2025-03-16"));
-        assertThrows(IllegalArgumentException.class,
-                () -> new Event("event", "2025-03-14", (String) null));
-        assertThrows(IllegalArgumentException.class,
-                () -> new Event("event", (LocalDate) null, LocalDate.of(2025, 3, 16)));
-        assertThrows(IllegalArgumentException.class,
-                () -> new Event("event", LocalDate.of(2025, 3, 14), (LocalDate) null));
-        assertThrows(IllegalArgumentException.class,
-                () -> new Event("event", (LocalDateTime) null, LocalDateTime.of(2025, 3, 16, 10, 0)));
-        assertThrows(IllegalArgumentException.class,
-                () -> new Event("event", LocalDateTime.of(2025, 3, 14, 9, 0), (LocalDateTime) null));
-        assertThrows(IllegalArgumentException.class,
-                () -> new Event("event", "2025-02-30", "2025-03-16"));
+        assertThrows(IllegalArgumentException.class, () -> new Event(null, "2025-03-14", "2025-03-16"));
+        assertThrows(IllegalArgumentException.class, () -> new Event("event", (String) null, "2025-03-16"));
+        assertThrows(IllegalArgumentException.class, () -> new Event("event", "2025-03-14", (String) null));
+        assertThrows(IllegalArgumentException.class, () ->
+                new Event("event", (LocalDate) null, LocalDate.of(2025, 3, 16)));
+        assertThrows(IllegalArgumentException.class, () ->
+                new Event("event", LocalDate.of(2025, 3, 14), (LocalDate) null));
+        assertThrows(IllegalArgumentException.class, () ->
+                new Event("event", (LocalDateTime) null, LocalDateTime.of(2025, 3, 16, 10, 0)));
+        assertThrows(IllegalArgumentException.class, () ->
+                new Event("event", LocalDateTime.of(2025, 3, 14, 9, 0), (LocalDateTime) null));
+        assertThrows(IllegalArgumentException.class, () -> new Event("event", "2025-02-30", "2025-03-16"));
     }
 }

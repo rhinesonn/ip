@@ -24,8 +24,8 @@ class FindCommandTest {
     void execute_rejectsMissingKeyword() {
         FindCommand command = new FindCommand("   ");
 
-        CaitlynException exception = assertThrows(CaitlynException.class,
-                () -> command.execute(List.of(), new Ui(new java.util.Scanner(""))));
+        CaitlynException exception = assertThrows(CaitlynException.class, () ->
+                command.execute(List.of(), new Ui(new java.util.Scanner(""))));
 
         assertEquals("I beg your pardon, master. Please provide a keyword, for example: find book.",
                 exception.getMessage());

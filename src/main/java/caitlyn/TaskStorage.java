@@ -129,6 +129,10 @@ public final class TaskStorage {
                 requireFieldCount(fields, 5);
                 yield new Event(fields.get(2), fields.get(3), fields.get(4));
             }
+            case WITHIN -> {
+                requireFieldCount(fields, 5);
+                yield new WithinTask(fields.get(2), fields.get(3), fields.get(4));
+            }
             default -> throw new IllegalStateException("Unhandled task type: " + taskType);
         };
 

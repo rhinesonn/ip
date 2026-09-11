@@ -10,6 +10,11 @@ public final class UnknownCommand extends Command {
     public UnknownCommand() {
     }
 
+    @Override
+    public boolean isReadOnly() {
+        return true;
+    }
+
     /**
      * Rejects the unrecognized command with a user-facing error.
      *

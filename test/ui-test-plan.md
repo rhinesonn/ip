@@ -6,6 +6,8 @@ The state-sensitive cases below deliberately interleave valid and invalid comman
 
 The cases below exercise the command-line entry point. For the JavaFX entry point, perform this manual smoke check after running `./gradlew run`: enter `todo buy milk`, press Enter, enter `list` and click **Send**, then enter `bye`. The transcript should show the user commands, the added task, the task list, and Caitlyn's farewell; the task count should change from `0 tasks saved` to `1 task saved`, and the input field and Send button should be disabled after `bye`.
 
+For within-period tasks, launch the GUI from a temporary working directory with no saved data. Enter `within collect certificate /from 2027-01-15 /to 2027-01-25` using Enter, then `list` using Send. Verify the exact task text from case 22, `1 task saved`, and the visible `within` hint. Submit a reversed window and confirm the range error and unchanged count; use mark/unmark and then bye. In a second temporary directory, put the invalid data from case 27 in `data/duke.txt`, relaunch, and verify the startup protection error. Try `within` using Enter and `todo blocked` using Send; both must show the protection message. Check that the saved bytes are unchanged. Repair the file, verify that the running session still rejects changes, then restart and verify normal operation.
+
 ## Test case 1: Add and list a ToDo
 
 Aim: Verify that a date-free task is stored, displayed with the `T` type marker, and included in the task count.
@@ -345,9 +347,9 @@ Here are the tasks in your list:
 4.[T][X] path \backup | notes
 ```
 
-## Test case 15: Recover from malformed saved data
+## Test case 15: Protect malformed saved data
 
-Aim: Verify that an invalid saved record does not crash Caitlyn and that the chatbot starts with an empty usable list.
+Aim: Verify that an invalid legacy record starts an empty protected session without overwriting the original data.
 
 Initial data/duke.txt contents:
 
@@ -365,8 +367,14 @@ bye
 Expected output:
 
 ```text
-I could not read the saved tasks, so I am starting with an empty list.
+I could not read data/duke.txt. Task changes are disabled to protect your saved data. Repair the file or its access permissions, then restart Caitlyn.
 Here are the tasks in your list:
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+T | 2 | invalid status
 ```
 
 ## Test case 16: Preserve special characters during saving
@@ -499,4 +507,239 @@ Expected output:
 ```text
 Please provide a keyword, for example: find book.
 1.[T][ ] keep this task
+```
+
+## Test case 22: Add and manage a within-period task
+
+Aim: Verify the new type's exact task display, search, completion changes, deletion, and automatic saving.
+
+Input:
+
+```text
+within collect certificate /from 2027-01-15 /to 2027-01-25
+list
+find CERTIFICATE
+mark 1
+unmark 1
+delete 1
+list
+bye
+```
+
+Expected output:
+
+```text
+Got it. I've added this task:
+[W][ ] collect certificate (within: Jan 15 2027 to: Jan 25 2027)
+Now you have 1 tasks in the list.
+Here are the tasks in your list:
+1.[W][ ] collect certificate (within: Jan 15 2027 to: Jan 25 2027)
+Here are the matching tasks in your list:
+1.[W][ ] collect certificate (within: Jan 15 2027 to: Jan 25 2027)
+As you wish, master. I have marked this task as done:
+[W][X] collect certificate (within: Jan 15 2027 to: Jan 25 2027)
+Of course, master. I have marked this task as not done yet:
+[W][ ] collect certificate (within: Jan 15 2027 to: Jan 25 2027)
+Noted. I've removed this task:
+[W][ ] collect certificate (within: Jan 15 2027 to: Jan 25 2027)
+Now you have 0 tasks in the list.
+Here are the tasks in your list:
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+
+```
+
+## Test case 23: Preserve timed and whole-day boundaries
+
+Aim: Verify accepted input formats, equal endpoints, and a timed start ending on a date-only day.
+
+Input:
+
+```text
+within collect certificate /from 15/1/2027 0900 /to 25/1/2027 17:00
+within submit form /from 2027-01-15 0900 /to 2027-01-15
+within one day /from 2027-01-15 /to 2027-01-15
+within press button /from 2027-01-15T09:00:00 /to 2027-01-15T09:00
+bye
+```
+
+Expected output:
+
+```text
+[W][ ] collect certificate (within: Jan 15 2027 9:00 AM to: Jan 25 2027 5:00 PM)
+[W][ ] submit form (within: Jan 15 2027 9:00 AM to: Jan 15 2027)
+[W][ ] one day (within: Jan 15 2027 to: Jan 15 2027)
+[W][ ] press button (within: Jan 15 2027 9:00 AM to: Jan 15 2027 9:00 AM)
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+W | 0 | collect certificate | 2027-01-15T09:00 | 2027-01-25T17:00
+W | 0 | submit form | 2027-01-15T09:00 | 2027-01-15
+W | 0 | one day | 2027-01-15 | 2027-01-15
+W | 0 | press button | 2027-01-15T09:00 | 2027-01-15T09:00
+```
+
+## Test case 24: Reject malformed within commands without changing data
+
+Aim: Verify structure, date, precision, range, and command-case errors while retaining an existing task.
+
+Input:
+
+```text
+todo keep
+within task /from 2027-01-15
+within task /from 2027-02-30 /to 2027-03-05
+within task /from 2027-01-15 /to tomorrow
+within task /from 2027-01-15T09:00:01 /to 2027-01-25
+within task /from 2027-01-15 /to 2027-01-25T17:00:00.001
+within task /from 2027-01-26 /to 2027-01-25
+WITHIN task /from 2027-01-15 /to 2027-01-25
+list
+bye
+```
+
+Expected output:
+
+```text
+I beg your pardon, master. Please use: within task /from start /to end. Provide a description and both boundaries, with /from followed by /to exactly once.
+I beg your pardon, master. Please provide a valid start date, for example: 2027-01-15 or 15/1/2027 0900.
+I beg your pardon, master. Please provide a valid end date, for example: 2027-01-25 or 25/1/2027 1700.
+I beg your pardon, master. The start time must use minute precision; seconds and fractional seconds must be zero.
+I beg your pardon, master. The end time must use minute precision; seconds and fractional seconds must be zero.
+I beg your pardon, master. The start of the window must not be after its end.
+I humbly beg your pardon, master. I do not know how to carry out that command.
+Here are the tasks in your list:
+1.[T][ ] keep
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+T | 0 | keep
+```
+
+## Test case 25: Load within records alongside legacy tasks
+
+Aim: Verify task order, completion, mixed boundary precision, escaping, and legacy reversed-event compatibility.
+
+Initial data/duke.txt contents:
+
+```text
+T | 0 | keep
+E | 0 | reversed | 2027-01-25 | 2027-01-15
+W | 1 | collect \| file \\backup | 2027-01-15T09:00 | 2027-01-25
+D | 0 | return book | 2027-01-25
+```
+
+Input:
+
+```text
+list
+find COLLECT
+bye
+```
+
+Expected output:
+
+```text
+1.[T][ ] keep
+2.[E][ ] reversed (from: Jan 25 2027 to: Jan 15 2027)
+3.[W][X] collect | file \backup (within: Jan 15 2027 9:00 AM to: Jan 25 2027)
+4.[D][ ] return book (by: Jan 25 2027)
+Here are the matching tasks in your list:
+3.[W][X] collect | file \backup (within: Jan 15 2027 9:00 AM to: Jan 25 2027)
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+T | 0 | keep
+E | 0 | reversed | 2027-01-25 | 2027-01-15
+W | 1 | collect \| file \\backup | 2027-01-15T09:00 | 2027-01-25
+D | 0 | return book | 2027-01-25
+```
+
+## Test case 26: Save duplicate within tasks with special characters
+
+Aim: Verify that identical windows are accepted and special description text is escaped on saving.
+
+Input:
+
+```text
+within collect | file \backup /from 2027-01-15 /to 2027-01-25
+within collect | file \backup /from 2027-01-15 /to 2027-01-25
+find backup
+bye
+```
+
+Expected output:
+
+```text
+Now you have 2 tasks in the list.
+Here are the matching tasks in your list:
+1.[W][ ] collect | file \backup (within: Jan 15 2027 to: Jan 25 2027)
+2.[W][ ] collect | file \backup (within: Jan 15 2027 to: Jan 25 2027)
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+W | 0 | collect \| file \\backup | 2027-01-15 | 2027-01-25
+W | 0 | collect \| file \\backup | 2027-01-15 | 2027-01-25
+```
+
+## Test case 27: Block all task changes after invalid within data
+
+Aim: Verify the shared protection rule, precedence over argument errors, read-only commands, and unchanged saved records.
+
+Initial data/duke.txt contents:
+
+```text
+T | 1 | preserve this task
+W | 0 | invalid | 2027-01-26 | 2027-01-25
+```
+
+Input:
+
+```text
+todo blocked
+deadline blocked /by 2027-01-15
+event blocked /from 2027-01-15 /to 2027-01-25
+within
+mark 999
+unmark 999
+delete 999
+list
+find preserve
+unknown
+bye
+```
+
+Expected output:
+
+```text
+I could not read data/duke.txt. Task changes are disabled to protect your saved data. Repair the file or its access permissions, then restart Caitlyn.
+I beg your pardon, master. Task changes are disabled because saved tasks could not be loaded. Repair data/duke.txt or its access permissions, then restart Caitlyn.
+I beg your pardon, master. Task changes are disabled because saved tasks could not be loaded. Repair data/duke.txt or its access permissions, then restart Caitlyn.
+I beg your pardon, master. Task changes are disabled because saved tasks could not be loaded. Repair data/duke.txt or its access permissions, then restart Caitlyn.
+I beg your pardon, master. Task changes are disabled because saved tasks could not be loaded. Repair data/duke.txt or its access permissions, then restart Caitlyn.
+I beg your pardon, master. Task changes are disabled because saved tasks could not be loaded. Repair data/duke.txt or its access permissions, then restart Caitlyn.
+I beg your pardon, master. Task changes are disabled because saved tasks could not be loaded. Repair data/duke.txt or its access permissions, then restart Caitlyn.
+I beg your pardon, master. Task changes are disabled because saved tasks could not be loaded. Repair data/duke.txt or its access permissions, then restart Caitlyn.
+Here are the tasks in your list:
+Here are the matching tasks in your list:
+I humbly beg your pardon, master. I do not know how to carry out that command.
+Farewell, master. It has been my pleasure to serve you.
+```
+
+Expected `data/duke.txt` contents after the case:
+
+```text
+T | 1 | preserve this task
+W | 0 | invalid | 2027-01-26 | 2027-01-25
 ```

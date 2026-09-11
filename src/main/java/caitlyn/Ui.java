@@ -112,7 +112,8 @@ public final class Ui {
 
     /** Displays an error encountered while loading saved tasks. */
     public void showLoadingError() {
-        showError("I could not read the saved tasks, so I am starting with an empty list.");
+        showError("I could not read data/duke.txt. Task changes are disabled to protect your saved data. "
+                + "Repair the file or its access permissions, then restart Caitlyn.");
     }
 
     /**

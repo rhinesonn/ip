@@ -30,6 +30,15 @@ public abstract class Command {
     }
 
     /**
+     * Returns whether this command can run without changing tasks or their saved file.
+     *
+     * @return {@code false} unless the command explicitly declares itself read-only.
+     */
+    public boolean isReadOnly() {
+        return false;
+    }
+
+    /**
      * Adds a task and saves the updated list, rolling back if saving fails.
      *
      * @param tasks the current task list.

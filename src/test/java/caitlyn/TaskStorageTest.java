@@ -104,6 +104,57 @@ class TaskStorageTest {
         assertLoadFailsWith("T | 0 | incomplete\\", "incomplete escape sequence");
     }
 
+    @Test
+    void saveAndLoad_withinTasks_preservesPrecisionStatusesAndEscaping() throws IOException {
+        List<Task> tasks = new ArrayList<>();
+        for (String from : List.of("2027-01-15", "2027-01-15T09:00")) {
+            for (String to : List.of("2027-01-25", "2027-01-25T17:00")) {
+                WithinTask task = new WithinTask("collect | \\backup /from notes", from, to);
+                tasks.add(task);
+                WithinTask doneTask = new WithinTask("collect | \\backup /from notes", from, to);
+                doneTask.markAsDone();
+                tasks.add(doneTask);
+            }
+        }
+        TaskStorage.save(tasks);
+        List<Task> loadedTasks = TaskStorage.load();
+        assertEquals(tasks.stream().map(Task::toStorageString).toList(),
+                loadedTasks.stream().map(Task::toStorageString).toList());
+        assertEquals(tasks.stream().map(Task::toString).toList(), loadedTasks.stream().map(Task::toString).toList());
+        for (Task task : loadedTasks) {
+            assertInstanceOf(WithinTask.class, task);
+        }
+    }
+
+    @Test
+    void load_invalidWithinRecords_rejectsEachInvalidField() throws IOException {
+        assertLoadFailsWith("W | 0 | task | 2027-01-15", "wrong number of fields");
+        assertLoadFailsWith("W | 0 | task | 2027-01-15 | 2027-01-25 | extra", "wrong number of fields");
+        assertLoadFailsWith("W | 2 | task | 2027-01-15 | 2027-01-25", "status must be 0 or 1");
+        assertLoadFailsWith("W | 0 |  | 2027-01-15 | 2027-01-25", "description cannot be empty");
+        assertLoadFailsWith("W | 0 | task | 2027-02-30 | 2027-03-01", "valid start date");
+        assertLoadFailsWith("W | 0 | task | 2027-01-15 | tomorrow", "valid end date");
+        assertLoadFailsWith("W | 0 | task | 2027-01-15T09:00:01 | 2027-01-25", "start time must use minute precision");
+        assertLoadFailsWith("W | 0 | task | 2027-01-15 | 2027-01-25T09:00:00.001",
+                "end time must use minute precision");
+        assertLoadFailsWith("W | 0 | task | 2027-01-26 | 2027-01-25", "must not be after its end");
+    }
+
+    @Test
+    void load_mixedLegacyAndWithinRecords_retainsLegacyValidation() throws IOException {
+        writeTaskFile(List.of("T | 1 | keep", "D | 0 | precise | 2027-01-15T09:00:01",
+                "E | 0 | reversed | 2027-01-25 | 2027-01-15",
+                "E | 1 | equal | 2027-01-15T09:00 | 2027-01-15T09:00",
+                "W | 0 | new task | 15/1/2027 0900 | 25/1/2027"));
+        List<Task> tasks = TaskStorage.load();
+        assertEquals(5, tasks.size());
+        TaskStorage.save(tasks);
+        assertEquals(List.of("T | 1 | keep", "D | 0 | precise | 2027-01-15T09:00:01",
+                "E | 0 | reversed | 2027-01-25 | 2027-01-15",
+                "E | 1 | equal | 2027-01-15T09:00 | 2027-01-15T09:00",
+                "W | 0 | new task | 2027-01-15T09:00 | 2027-01-25"), Files.readAllLines(TASK_FILE));
+    }
+
     /** Writes a temporary task file and verifies that loading reports the expected problem. */
     private void assertLoadFailsWith(String line, String expectedMessage) throws IOException {
         writeTaskFile(List.of(line));

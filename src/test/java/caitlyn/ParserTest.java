@@ -27,4 +27,15 @@ class ParserTest {
         assertInstanceOf(UnknownCommand.class, Parser.parse("todoish something"));
         assertInstanceOf(UnknownCommand.class, Parser.parse("deadlineish something"));
     }
+
+    @Test
+    void parse_withinCommand_recognizesOnlyExactLowercaseName() {
+        for (String input : new String[]{"within", "within task", " \twithin\ttask\t "}) {
+            assertInstanceOf(WithinCommand.class, Parser.parse(input));
+        }
+        for (String input : new String[]{"WITHIN task", "Within task", "w task", "withinTask", "within/task"}) {
+            assertInstanceOf(UnknownCommand.class, Parser.parse(input));
+        }
+        assertInstanceOf(UnknownCommand.class, Parser.parse("event\ttask"));
+    }
 }

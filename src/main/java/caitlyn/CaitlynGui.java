@@ -1,9 +1,5 @@
 package caitlyn;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -40,17 +36,14 @@ public final class CaitlynGui extends Application {
     /** The label showing the number of tasks currently loaded. */
     private Label taskCountLabel;
 
-    /** The tasks shared by all commands in this application session. */
-    private List<Task> tasks;
+    /** The tasks and load-failure protection shared by all commands in this session. */
+    private TaskSession session;
 
     /** The UI adapter that sends command responses to the transcript. */
     private Ui ui;
 
     /** Whether the user has ended the current session. */
     private boolean isSessionEnded;
-
-    /** Whether saved task data could not be loaded. */
-    private boolean hasLoadingError;
 
     /**
      * Creates the JavaFX window and initializes a session with saved tasks.
@@ -59,7 +52,7 @@ public final class CaitlynGui extends Application {
      */
     @Override
     public void start(Stage stage) {
-        tasks = loadTasks();
+        session = new TaskSession();
         transcript = createTranscript();
         commandInput = new TextField();
         commandInput.setPromptText("Enter a command, for example: todo read book");
@@ -88,7 +81,7 @@ public final class CaitlynGui extends Application {
 
         ui = new Ui(this::appendCaitlynMessage);
         ui.showWelcome();
-        if (hasLoadingError) {
+        if (session.hasLoadingError()) {
             ui.showLoadingError();
         }
         commandInput.requestFocus();
@@ -104,7 +97,8 @@ public final class CaitlynGui extends Application {
         title.setStyle("-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #243b53;");
 
         Label subtitle = new Label(
-                "Your task assistant · Try todo, deadline, event, list, find, mark, unmark, or delete");
+                "Your task assistant · Try todo, deadline, event, within, list, find, mark, unmark, or delete");
+        subtitle.setWrapText(true);
         subtitle.setStyle("-fx-text-fill: #627d98;");
         return new VBox(4, title, subtitle);
     }
@@ -136,20 +130,6 @@ public final class CaitlynGui extends Application {
         return commandBar;
     }
 
-    /**
-     * Loads saved tasks for the session.
-     *
-     * @return the saved tasks, or an empty list if the saved data is invalid or unreadable.
-     */
-    private List<Task> loadTasks() {
-        try {
-            return TaskStorage.load();
-        } catch (IOException | IllegalArgumentException exception) {
-            hasLoadingError = true;
-            return new ArrayList<>();
-        }
-    }
-
     /** Submits the current input to Caitlyn and displays the response. */
     private void submitCommand() {
         if (isSessionEnded) {
@@ -166,7 +146,7 @@ public final class CaitlynGui extends Application {
         ui.showSeparator();
         try {
             Command command = Parser.parse(fullCommand);
-            command.execute(tasks, ui);
+            session.execute(command, ui);
             if (command.isExit()) {
                 endSession();
             }
@@ -206,8 +186,9 @@ public final class CaitlynGui extends Application {
 
     /** Updates the task count shown below the command input. */
     private void updateTaskCount() {
-        if (taskCountLabel != null && tasks != null) {
-            taskCountLabel.setText(tasks.size() + (tasks.size() == 1 ? " task" : " tasks") + " saved");
+        if (taskCountLabel != null && session != null) {
+            int taskCount = session.getTaskCount();
+            taskCountLabel.setText(taskCount + (taskCount == 1 ? " task" : " tasks") + " saved");
         }
     }
 

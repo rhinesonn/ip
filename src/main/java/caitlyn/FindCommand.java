@@ -16,6 +16,11 @@ public final class FindCommand extends Command {
     }
 
     @Override
+    public boolean isReadOnly() {
+        return true;
+    }
+
+    @Override
     public void execute(List<Task> tasks, Ui ui) throws CaitlynException {
         if (keyword.isBlank()) {
             throw new CaitlynException(

@@ -34,6 +34,9 @@ public final class Parser {
             return new DeadlineCommand(command.substring("deadline".length()).trim());
         } else if (command.equals("event") || command.startsWith("event ")) {
             return new EventCommand(command.substring("event".length()).trim());
+        } else if (command.equals("within") || command.startsWith("within ")
+                || command.startsWith("within\t")) {
+            return new WithinCommand(command.substring("within".length()).trim());
         }
         return new UnknownCommand();
     }

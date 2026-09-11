@@ -10,6 +10,11 @@ public final class ExitCommand extends Command {
     public ExitCommand() {
     }
 
+    @Override
+    public boolean isReadOnly() {
+        return true;
+    }
+
     /** Displays the farewell message when the user exits. */
     @Override
     public void execute(List<Task> tasks, Ui ui) {

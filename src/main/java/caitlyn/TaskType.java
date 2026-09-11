@@ -15,7 +15,10 @@ public enum TaskType {
     DEADLINE("D"),
 
     /** A task with a start and end date or time. */
-    EVENT("E");
+    EVENT("E"),
+
+    /** An action completed once within an inclusive date/time window. */
+    WITHIN("W");
 
     /** The marker shown before a task description. */
     private final String marker;

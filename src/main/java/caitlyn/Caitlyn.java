@@ -1,9 +1,5 @@
 package caitlyn;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Entry point for the chatbot application.
  */
@@ -22,7 +18,10 @@ public class Caitlyn {
         Ui ui = new Ui();
         ui.showWelcome();
 
-        List<Task> tasks = loadTasks(ui);
+        TaskSession session = new TaskSession();
+        if (session.hasLoadingError()) {
+            ui.showLoadingError();
+        }
         boolean isExit = false;
         while (!isExit && ui.hasNextCommand()) {
             String fullCommand = ui.readCommand();
@@ -35,28 +34,13 @@ public class Caitlyn {
                 Command command = Parser.parse(fullCommand);
                 assert command != null
                         : "The parser should return a command for every input.";
-                command.execute(tasks, ui);
+                session.execute(command, ui);
                 isExit = command.isExit();
             } catch (CaitlynException exception) {
                 ui.showError(exception.getMessage());
             } finally {
                 ui.showSeparator();
             }
-        }
-    }
-
-    /**
-     * Loads the saved task list, falling back to an empty list when saved data cannot be read.
-     *
-     * @param ui the UI used to report loading errors.
-     * @return the saved tasks or an empty task list.
-     */
-    private static List<Task> loadTasks(Ui ui) {
-        try {
-            return TaskStorage.load();
-        } catch (IOException | IllegalArgumentException exception) {
-            ui.showLoadingError();
-            return new ArrayList<>();
         }
     }
 

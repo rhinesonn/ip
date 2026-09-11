@@ -12,6 +12,7 @@ class TaskTypeTest {
         assertEquals("T", TaskType.TODO.getMarker());
         assertEquals("D", TaskType.DEADLINE.getMarker());
         assertEquals("E", TaskType.EVENT.getMarker());
+        assertEquals("W", TaskType.WITHIN.getMarker());
     }
 
     @Test
@@ -19,6 +20,7 @@ class TaskTypeTest {
         assertEquals(TaskType.TODO, TaskType.fromMarker("T"));
         assertEquals(TaskType.DEADLINE, TaskType.fromMarker("D"));
         assertEquals(TaskType.EVENT, TaskType.fromMarker("E"));
+        assertEquals(TaskType.WITHIN, TaskType.fromMarker("W"));
     }
 
     @Test

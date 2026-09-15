@@ -6,11 +6,15 @@ import java.util.List;
  * A command that ends the application.
  */
 public final class ExitCommand extends Command {
-    /** Creates an exit command. */
+    /**
+     * Creates an exit command.
+     */
     public ExitCommand() {
     }
 
-    /** Displays the farewell message when the user exits. */
+    /**
+     * Displays the farewell message when the user exits.
+     */
     @Override
     public void execute(List<Task> tasks, Ui ui) {
         ui.showFarewell();

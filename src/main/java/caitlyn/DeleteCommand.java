@@ -15,6 +15,17 @@ public final class DeleteCommand extends Command {
      * @param command the complete delete command entered by the user.
      */
     public DeleteCommand(String command) {
+        this(command, new TaskStorage());
+    }
+
+    /**
+     * Creates a command with a supplied destination for task changes.
+     *
+     * @param command the command input.
+     * @param storage the destination for task changes.
+     */
+    DeleteCommand(String command, TaskStorage storage) {
+        super(storage);
         this.command = command;
     }
 

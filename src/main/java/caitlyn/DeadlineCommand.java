@@ -15,6 +15,17 @@ public final class DeadlineCommand extends Command {
      * @param commandArguments the text containing the task description and deadline.
      */
     public DeadlineCommand(String commandArguments) {
+        this(commandArguments, new TaskStorage());
+    }
+
+    /**
+     * Creates a command with a supplied destination for task changes.
+     *
+     * @param commandArguments the command input.
+     * @param storage the destination for task changes.
+     */
+    DeadlineCommand(String commandArguments, TaskStorage storage) {
+        super(storage);
         this.commandArguments = commandArguments;
     }
 

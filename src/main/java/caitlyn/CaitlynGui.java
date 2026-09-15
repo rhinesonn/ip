@@ -61,6 +61,21 @@ public final class CaitlynGui extends Application {
     public void start(Stage stage) {
         tasks = loadTasks();
         transcript = createTranscript();
+        initializeInputControls();
+        configureWindow(stage);
+
+        ui = new Ui(this::appendCaitlynMessage);
+        ui.showWelcome();
+        if (hasLoadingError) {
+            ui.showLoadingError();
+        }
+        commandInput.requestFocus();
+    }
+
+    /**
+     * Creates command controls and connects them to command submission.
+     */
+    private void initializeInputControls() {
         commandInput = new TextField();
         commandInput.setPromptText("Enter a command, for example: todo read book");
         commandInput.setOnAction(event -> submitCommand());
@@ -71,7 +86,12 @@ public final class CaitlynGui extends Application {
 
         taskCountLabel = new Label();
         updateTaskCount();
+    }
 
+    /**
+     * Arranges the window contents and displays the configured stage.
+     */
+    private void configureWindow(Stage stage) {
         VBox content = new VBox(12, createHeader(), transcript, createCommandBar(), taskCountLabel);
         content.setPadding(new Insets(18));
         VBox.setVgrow(transcript, Priority.ALWAYS);
@@ -85,13 +105,6 @@ public final class CaitlynGui extends Application {
         stage.setMinHeight(460);
         stage.setScene(scene);
         stage.show();
-
-        ui = new Ui(this::appendCaitlynMessage);
-        ui.showWelcome();
-        if (hasLoadingError) {
-            ui.showLoadingError();
-        }
-        commandInput.requestFocus();
     }
 
     /**
@@ -143,14 +156,16 @@ public final class CaitlynGui extends Application {
      */
     private List<Task> loadTasks() {
         try {
-            return TaskStorage.load();
+            return new TaskStorage().load();
         } catch (IOException | IllegalArgumentException exception) {
             hasLoadingError = true;
             return new ArrayList<>();
         }
     }
 
-    /** Submits the current input to Caitlyn and displays the response. */
+    /**
+     * Submits the current input to Caitlyn and displays the response.
+     */
     private void submitCommand() {
         if (isSessionEnded) {
             return;
@@ -178,12 +193,16 @@ public final class CaitlynGui extends Application {
         }
     }
 
-    /** Displays a command as a user message in the transcript. */
+    /**
+     * Displays a command as a user message in the transcript.
+     */
     private void appendUserMessage(String command) {
         appendTranscriptLine("You: " + command);
     }
 
-    /** Displays a response line from Caitlyn in the transcript. */
+    /**
+     * Displays a response line from Caitlyn in the transcript.
+     */
     private void appendCaitlynMessage(String message) {
         String cleanedMessage = message.stripLeading();
         if (!cleanedMessage.isEmpty()) {
@@ -195,7 +214,9 @@ public final class CaitlynGui extends Application {
         transcript.positionCaret(transcript.getLength());
     }
 
-    /** Appends one visually separated line to the transcript. */
+    /**
+     * Appends one visually separated line to the transcript.
+     */
     private void appendTranscriptLine(String line) {
         if (transcript.getLength() > 0) {
             transcript.appendText("\n");
@@ -204,14 +225,18 @@ public final class CaitlynGui extends Application {
         transcript.positionCaret(transcript.getLength());
     }
 
-    /** Updates the task count shown below the command input. */
+    /**
+     * Updates the task count shown below the command input.
+     */
     private void updateTaskCount() {
         if (taskCountLabel != null && tasks != null) {
             taskCountLabel.setText(tasks.size() + (tasks.size() == 1 ? " task" : " tasks") + " saved");
         }
     }
 
-    /** Disables command input after the user enters {@code bye}. */
+    /**
+     * Disables command input after the user enters {@code bye}.
+     */
     private void endSession() {
         isSessionEnded = true;
         commandInput.setDisable(true);

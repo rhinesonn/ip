@@ -10,17 +10,29 @@ public final class MarkCommand extends Command {
     private final String command;
 
     /** Whether this command marks the selected task as done. */
-    private final boolean markAsDone;
+    private final boolean isMarkingDone;
 
     /**
      * Creates a mark or unmark command.
      *
      * @param command the complete command entered by the user.
-     * @param markAsDone whether the command should mark the task as done.
+     * @param isMarkingDone whether the command should mark the task as done.
      */
-    public MarkCommand(String command, boolean markAsDone) {
+    public MarkCommand(String command, boolean isMarkingDone) {
+        this(command, isMarkingDone, new TaskStorage());
+    }
+
+    /**
+     * Creates a mark or unmark command with supplied storage.
+     *
+     * @param command the complete command entered by the user.
+     * @param isMarkingDone whether the task should be marked done.
+     * @param storage the destination for task changes.
+     */
+    MarkCommand(String command, boolean isMarkingDone, TaskStorage storage) {
+        super(storage);
         this.command = command;
-        this.markAsDone = markAsDone;
+        this.isMarkingDone = isMarkingDone;
     }
 
     /**
@@ -32,11 +44,11 @@ public final class MarkCommand extends Command {
      */
     @Override
     public void execute(List<Task> tasks, Ui ui) throws CaitlynException {
-        String commandName = markAsDone ? "mark" : "unmark";
+        String commandName = isMarkingDone ? "mark" : "unmark";
         int taskIndex = parseTaskIndex(command, commandName, tasks);
         Task task = tasks.get(taskIndex);
         boolean wasDone = task.isDone();
-        if (markAsDone) {
+        if (isMarkingDone) {
             task.markAsDone();
         } else {
             task.markAsNotDone();
@@ -51,6 +63,6 @@ public final class MarkCommand extends Command {
             }
             throw exception;
         }
-        ui.showTaskStatus(task, markAsDone);
+        ui.showTaskStatus(task, isMarkingDone);
     }
 }

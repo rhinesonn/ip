@@ -41,7 +41,7 @@ public class Event extends Task {
      * @param to the event's end date.
      */
     public Event(String description, LocalDate from, LocalDate to) {
-        this(description, dateOnly(from), dateOnly(to));
+        this(description, convertDateOnly(from), convertDateOnly(to));
     }
 
     /**
@@ -56,7 +56,9 @@ public class Event extends Task {
                 new DateTimeParser.ParsedDateTime(to, true));
     }
 
-    /** Creates an event from already parsed date/time values. */
+    /**
+     * Creates an event from already parsed date/time values.
+     */
     private Event(String description, DateTimeParser.ParsedDateTime from,
             DateTimeParser.ParsedDateTime to) {
         super(description);
@@ -87,7 +89,9 @@ public class Event extends Task {
         return to;
     }
 
-    /** Returns the event task type used for display and storage. */
+    /**
+     * Returns the event task type used for display and storage.
+     */
     @Override
     protected TaskType getTaskType() {
         return TaskType.EVENT;
@@ -118,8 +122,10 @@ public class Event extends Task {
         return fields;
     }
 
-    /** Converts a date-only constructor argument into the shared parsed representation. */
-    private static DateTimeParser.ParsedDateTime dateOnly(LocalDate date) {
+    /**
+     * Converts a date-only constructor argument into the shared parsed representation.
+     */
+    private static DateTimeParser.ParsedDateTime convertDateOnly(LocalDate date) {
         if (date == null) {
             throw new IllegalArgumentException("An event date cannot be null.");
         }

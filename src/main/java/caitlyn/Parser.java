@@ -4,7 +4,9 @@ package caitlyn;
  * Converts complete user commands into executable command objects.
  */
 public final class Parser {
-    /** Prevents construction of this utility class. */
+    /**
+     * Prevents construction of this utility class.
+     */
     private Parser() {
     }
 

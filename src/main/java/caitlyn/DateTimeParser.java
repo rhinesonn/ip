@@ -22,17 +22,19 @@ public final class DateTimeParser {
 
     /** Formats accepted when a command includes a time. */
     private static final List<DateTimeFormatter> DATE_TIME_FORMATTERS = List.of(
-            formatter("uuuu-MM-dd HHmm"),
-            formatter("d/M/uuuu HHmm"),
-            formatter("uuuu-MM-dd HH:mm"),
-            formatter("d/M/uuuu HH:mm"));
+            createFormatter("uuuu-MM-dd HHmm"),
+            createFormatter("d/M/uuuu HHmm"),
+            createFormatter("uuuu-MM-dd HH:mm"),
+            createFormatter("d/M/uuuu HH:mm"));
 
     /** Formats accepted when a command contains only a date. */
     private static final List<DateTimeFormatter> DATE_FORMATTERS = List.of(
-            formatter("uuuu-MM-dd"),
-            formatter("d/M/uuuu"));
+            createFormatter("uuuu-MM-dd"),
+            createFormatter("d/M/uuuu"));
 
-    /** Prevents construction of this utility class. */
+    /**
+     * Prevents construction of this utility class.
+     */
     private DateTimeParser() {
     }
 
@@ -123,7 +125,7 @@ public final class DateTimeParser {
      * @param pattern the accepted input pattern.
      * @return a strict English formatter.
      */
-    private static DateTimeFormatter formatter(String pattern) {
+    private static DateTimeFormatter createFormatter(String pattern) {
         return DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
                 .withResolverStyle(ResolverStyle.STRICT);
     }

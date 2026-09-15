@@ -15,6 +15,17 @@ public final class EventCommand extends Command {
      * @param commandArguments the text containing the event description and date range.
      */
     public EventCommand(String commandArguments) {
+        this(commandArguments, new TaskStorage());
+    }
+
+    /**
+     * Creates a command with a supplied destination for task changes.
+     *
+     * @param commandArguments the command input.
+     * @param storage the destination for task changes.
+     */
+    EventCommand(String commandArguments, TaskStorage storage) {
+        super(storage);
         this.commandArguments = commandArguments;
     }
 

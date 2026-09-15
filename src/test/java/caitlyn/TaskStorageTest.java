@@ -13,32 +13,22 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /** Tests persistence round trips and validation of the task file format. */
 class TaskStorageTest {
-    private static final Path TASK_FILE = Path.of("data", "duke.txt");
+    @TempDir
+    private Path temporaryDirectory;
 
-    private byte[] originalTaskFile;
-    private boolean taskFileOriginallyExisted;
+    private Path taskFile;
+    private TaskStorage storage;
 
     @BeforeEach
-    void preserveExistingTaskFile() throws IOException {
-        taskFileOriginallyExisted = Files.exists(TASK_FILE);
-        if (taskFileOriginallyExisted) {
-            originalTaskFile = Files.readAllBytes(TASK_FILE);
-        }
-    }
-
-    @AfterEach
-    void restoreExistingTaskFile() throws IOException {
-        Files.deleteIfExists(TASK_FILE);
-        if (taskFileOriginallyExisted) {
-            Files.createDirectories(TASK_FILE.getParent());
-            Files.write(TASK_FILE, originalTaskFile);
-        }
+    void setUpStorage() {
+        taskFile = temporaryDirectory.resolve("data").resolve("duke.txt");
+        storage = new TaskStorage(taskFile);
     }
 
     @Test
@@ -49,9 +39,9 @@ class TaskStorageTest {
         Event event = new Event("project meeting", "2025-03-15", "2025-03-15 1600");
         List<Task> tasks = List.of(todo, deadline, event);
 
-        TaskStorage.save(tasks);
-        List<String> savedLines = Files.readAllLines(TASK_FILE, StandardCharsets.UTF_8);
-        List<Task> loadedTasks = TaskStorage.load();
+        storage.save(tasks);
+        List<String> savedLines = Files.readAllLines(taskFile, StandardCharsets.UTF_8);
+        List<Task> loadedTasks = storage.load();
 
         assertEquals(List.of(
                 "T | 1 | review \\| notes\\\\backup",
@@ -70,18 +60,18 @@ class TaskStorageTest {
 
     @Test
     void load_returnsEmptyListWhenTaskFileDoesNotExist() throws IOException {
-        Files.deleteIfExists(TASK_FILE);
+        Files.deleteIfExists(taskFile);
 
-        assertTrue(TaskStorage.load().isEmpty());
+        assertTrue(storage.load().isEmpty());
     }
 
     @Test
     void save_rejectsNullListsAndNullTasks() {
-        assertThrows(IllegalArgumentException.class, () -> TaskStorage.save(null));
+        assertThrows(IllegalArgumentException.class, () -> storage.save(null));
         List<Task> tasksWithNull = new ArrayList<>();
         tasksWithNull.add(new Todo("valid"));
         tasksWithNull.add(null);
-        assertThrows(IllegalArgumentException.class, () -> TaskStorage.save(tasksWithNull));
+        assertThrows(IllegalArgumentException.class, () -> storage.save(tasksWithNull));
     }
 
     @Test
@@ -90,7 +80,7 @@ class TaskStorageTest {
                 "T | 0 | valid task",
                 "T | 2 | invalid status"));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, TaskStorage::load);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, storage::load);
 
         assertTrue(exception.getMessage().contains("line 2"));
         assertTrue(exception.getMessage().contains("status must be 0 or 1"));
@@ -104,18 +94,74 @@ class TaskStorageTest {
         assertLoadFailsWith("T | 0 | incomplete\\", "incomplete escape sequence");
     }
 
+    @Test
+    void saveAndLoad_controlCharacters_preservesDescription() throws IOException {
+        String description = "first\nsecond\rthird | path\\backup";
+
+        storage.save(List.of(new Todo(description)));
+
+        assertEquals(description, storage.load().getFirst().getDescription());
+    }
+
+    @Test
+    void load_blankLinesAndUnknownEscapes_preservesTaskData() throws IOException {
+        writeTaskFile(List.of("", "   ", "T | 0 | path\\unknown"));
+
+        List<Task> tasks = storage.load();
+
+        assertEquals(1, tasks.size());
+        assertEquals("path\\unknown", tasks.getFirst().getDescription());
+    }
+
+    @Test
+    void save_invalidTaskList_preservesExistingFile() throws IOException {
+        storage.save(List.of(new Todo("keep this")));
+        List<Task> invalidTasks = new ArrayList<>();
+        invalidTasks.add(new Todo("replacement"));
+        invalidTasks.add(null);
+
+        assertThrows(IllegalArgumentException.class, () -> storage.save(invalidTasks));
+
+        assertEquals("keep this", storage.load().getFirst().getDescription());
+    }
+
+    @Test
+    void save_replacementFails_removesTemporaryFile() throws IOException {
+        Files.createDirectories(taskFile);
+        Path existingFile = taskFile.resolve("keep.txt");
+        Files.writeString(existingFile, "keep this");
+
+        assertThrows(IOException.class, () -> storage.save(List.of(new Todo("replacement"))));
+
+        assertEquals("keep this", Files.readString(existingFile));
+        try (var savedPaths = Files.list(taskFile.getParent())) {
+            assertEquals(List.of(taskFile), savedPaths.toList());
+        }
+    }
+
+    @Test
+    void save_separateStorageInstances_keepsFilesIndependent() throws IOException {
+        TaskStorage otherStorage = new TaskStorage(temporaryDirectory.resolve("other.txt"));
+
+        storage.save(List.of(new Todo("first file")));
+        otherStorage.save(List.of(new Todo("second file")));
+
+        assertEquals("first file", storage.load().getFirst().getDescription());
+        assertEquals("second file", otherStorage.load().getFirst().getDescription());
+    }
+
     /** Writes a temporary task file and verifies that loading reports the expected problem. */
     private void assertLoadFailsWith(String line, String expectedMessage) throws IOException {
         writeTaskFile(List.of(line));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, TaskStorage::load);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, storage::load);
 
         assertTrue(exception.getMessage().contains(expectedMessage));
     }
 
     /** Writes task-file lines using the same UTF-8 encoding as the application. */
     private void writeTaskFile(List<String> lines) throws IOException {
-        Files.createDirectories(TASK_FILE.getParent());
-        Files.write(TASK_FILE, lines, StandardCharsets.UTF_8);
+        Files.createDirectories(taskFile.getParent());
+        Files.write(taskFile, lines, StandardCharsets.UTF_8);
     }
 }

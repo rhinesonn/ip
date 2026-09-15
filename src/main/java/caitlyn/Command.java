@@ -7,8 +7,23 @@ import java.util.List;
  * Represents one command that Caitlyn can execute.
  */
 public abstract class Command {
-    /** Creates a command. */
+    /** The storage used to persist changes made by this command. */
+    private final TaskStorage storage;
+
+    /**
+     * Creates a command.
+     */
     public Command() {
+        this(new TaskStorage());
+    }
+
+    /**
+     * Creates a command that saves through the supplied storage.
+     *
+     * @param storage the destination for task changes.
+     */
+    protected Command(TaskStorage storage) {
+        this.storage = storage;
     }
 
     /**
@@ -54,7 +69,7 @@ public abstract class Command {
      */
     protected final void saveTasks(List<Task> tasks) throws CaitlynException {
         try {
-            TaskStorage.save(tasks);
+            storage.save(tasks);
         } catch (IOException | IllegalArgumentException | SecurityException exception) {
             throw new CaitlynException(
                     "I beg your pardon, master. I could not save your tasks to disk.");

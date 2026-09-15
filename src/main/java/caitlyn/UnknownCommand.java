@@ -6,7 +6,9 @@ import java.util.List;
  * A command representing input that Caitlyn does not recognize.
  */
 public final class UnknownCommand extends Command {
-    /** Creates a command for unrecognized input. */
+    /**
+     * Creates a command for unrecognized input.
+     */
     public UnknownCommand() {
     }
 

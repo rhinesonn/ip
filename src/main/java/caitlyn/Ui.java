@@ -25,7 +25,9 @@ public final class Ui {
     /** Destination for messages produced by Caitlyn. */
     private final Consumer<String> output;
 
-    /** Creates a UI connected to the standard input and output streams. */
+    /**
+     * Creates a UI connected to the standard input and output streams.
+     */
     public Ui() {
         this(new Scanner(System.in), message -> System.out.println(message));
     }
@@ -62,7 +64,9 @@ public final class Ui {
         this.output = output;
     }
 
-    /** Returns the scanner after checking that it is available. */
+    /**
+     * Returns the scanner after checking that it is available.
+     */
     private static Scanner requireScanner(Scanner scanner) {
         if (scanner == null) {
             throw new IllegalArgumentException("The UI scanner cannot be null.");
@@ -70,7 +74,9 @@ public final class Ui {
         return scanner;
     }
 
-    /** Displays Caitlyn's greeting. */
+    /**
+     * Displays Caitlyn's greeting.
+     */
     public void showWelcome() {
         showSeparator();
         output.accept(BANNER);
@@ -100,17 +106,23 @@ public final class Ui {
         return scanner.nextLine().trim();
     }
 
-    /** Displays the standard conversation separator. */
+    /**
+     * Displays the standard conversation separator.
+     */
     public void showSeparator() {
         output.accept(SEPARATOR);
     }
 
-    /** Displays Caitlyn's farewell message. */
+    /**
+     * Displays Caitlyn's farewell message.
+     */
     public void showFarewell() {
         output.accept("     Farewell, master. It has been my pleasure to serve you.");
     }
 
-    /** Displays an error encountered while loading saved tasks. */
+    /**
+     * Displays an error encountered while loading saved tasks.
+     */
     public void showLoadingError() {
         showError("I could not read the saved tasks, so I am starting with an empty list.");
     }
@@ -179,10 +191,10 @@ public final class Ui {
      * Displays confirmation after a task's completion status changes.
      *
      * @param task the task whose status changed.
-     * @param markAsDone whether the task was marked done rather than not done.
+     * @param isMarkingDone whether the task was marked done rather than not done.
      */
-    public void showTaskStatus(Task task, boolean markAsDone) {
-        if (markAsDone) {
+    public void showTaskStatus(Task task, boolean isMarkingDone) {
+        if (isMarkingDone) {
             output.accept("     As you wish, master. I have marked this task as done:");
         } else {
             output.accept("     Of course, master. I have marked this task as not done yet:");

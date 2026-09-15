@@ -8,7 +8,9 @@ import java.util.List;
  * Entry point for the chatbot application.
  */
 public class Caitlyn {
-    /** Creates the application entry-point object. */
+    /**
+     * Creates the application entry-point object.
+     */
     public Caitlyn() {
     }
 
@@ -53,7 +55,7 @@ public class Caitlyn {
      */
     private static List<Task> loadTasks(Ui ui) {
         try {
-            return TaskStorage.load();
+            return new TaskStorage().load();
         } catch (IOException | IllegalArgumentException exception) {
             ui.showLoadingError();
             return new ArrayList<>();

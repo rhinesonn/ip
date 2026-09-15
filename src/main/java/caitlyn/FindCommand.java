@@ -10,7 +10,9 @@ public final class FindCommand extends Command {
     /** The keyword to search for. */
     private final String keyword;
 
-    /** Creates a find command with its parsed keyword. */
+    /**
+     * Creates a find command with its parsed keyword.
+     */
     public FindCommand(String keyword) {
         this.keyword = keyword;
     }
@@ -27,7 +29,7 @@ public final class FindCommand extends Command {
     /**
      * Returns tasks whose descriptions contain the keyword, ignoring letter case.
      *
-     * @param tasks the tasks to search
+     * @param tasks the tasks to search.
      * @return matching tasks in their original list order.
      */
     List<Task> findMatchingTasks(List<Task> tasks) {

@@ -45,7 +45,7 @@ public enum TaskType {
      * @return the matching task type.
      * @throws IllegalArgumentException if the marker is not recognized.
      */
-    public static TaskType fromMarker(String marker) {
+    public static TaskType parseMarker(String marker) {
         for (TaskType taskType : values()) {
             if (taskType.marker.equals(marker)) {
                 return taskType;

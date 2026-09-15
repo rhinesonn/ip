@@ -15,6 +15,17 @@ public final class TodoCommand extends Command {
      * @param description the description of the new task.
      */
     public TodoCommand(String description) {
+        this(description, new TaskStorage());
+    }
+
+    /**
+     * Creates a command with a supplied destination for task changes.
+     *
+     * @param description the command input.
+     * @param storage the destination for task changes.
+     */
+    TodoCommand(String description, TaskStorage storage) {
+        super(storage);
         this.description = description;
     }
 

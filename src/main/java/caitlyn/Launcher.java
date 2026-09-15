@@ -9,7 +9,9 @@ import javafx.application.Application;
  * initializing JavaFX from a command-line test process.</p>
  */
 public final class Launcher {
-    /** Prevents construction of this utility class. */
+    /**
+     * Prevents construction of this utility class.
+     */
     private Launcher() {
     }
 

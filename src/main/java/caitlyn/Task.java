@@ -27,12 +27,16 @@ public class Task {
         this.isDone = false;
     }
 
-    /** Marks this task as completed. */
+    /**
+     * Marks this task as completed.
+     */
     public void markAsDone() {
         isDone = true;
     }
 
-    /** Marks this task as incomplete again. */
+    /**
+     * Marks this task as incomplete again.
+     */
     public void markAsNotDone() {
         isDone = false;
     }

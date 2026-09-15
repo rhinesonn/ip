@@ -15,14 +15,14 @@ class TaskTypeTest {
     }
 
     @Test
-    void fromMarker_returnsTheMatchingTaskType() {
-        assertEquals(TaskType.TODO, TaskType.fromMarker("T"));
-        assertEquals(TaskType.DEADLINE, TaskType.fromMarker("D"));
-        assertEquals(TaskType.EVENT, TaskType.fromMarker("E"));
+    void parseMarker_returnsTheMatchingTaskType() {
+        assertEquals(TaskType.TODO, TaskType.parseMarker("T"));
+        assertEquals(TaskType.DEADLINE, TaskType.parseMarker("D"));
+        assertEquals(TaskType.EVENT, TaskType.parseMarker("E"));
     }
 
     @Test
-    void fromMarker_rejectsUnknownMarkers() {
-        assertThrows(IllegalArgumentException.class, () -> TaskType.fromMarker("X"));
+    void parseMarker_rejectsUnknownMarkers() {
+        assertThrows(IllegalArgumentException.class, () -> TaskType.parseMarker("X"));
     }
 }

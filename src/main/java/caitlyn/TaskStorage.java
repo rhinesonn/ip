@@ -14,11 +14,33 @@ import java.util.List;
  * Reads and writes Caitlyn's task list in the local data file.
  */
 public final class TaskStorage {
-    /** The relative path where the task list is stored. */
-    private static final Path TASK_FILE = Path.of("data", "duke.txt");
+    private static final int FIELD_INDEX_TYPE = 0;
+    private static final int FIELD_INDEX_STATUS = 1;
+    private static final int FIELD_INDEX_DESCRIPTION = 2;
+    private static final int FIELD_INDEX_DEADLINE = 3;
+    private static final int FIELD_INDEX_START = 3;
+    private static final int FIELD_INDEX_END = 4;
+    private static final int FIELD_COUNT_TODO = 3;
+    private static final int FIELD_COUNT_DEADLINE = 4;
+    private static final int FIELD_COUNT_EVENT = 5;
 
-    /** Prevents construction of this utility class. */
-    private TaskStorage() {
+    /** The file used by this storage instance, allowing tests to use temporary files. */
+    private final Path taskFile;
+
+    /**
+     * Creates storage using the application's default task file.
+     */
+    public TaskStorage() {
+        this(Path.of("data", "duke.txt"));
+    }
+
+    /**
+     * Creates storage using a supplied task file.
+     *
+     * @param taskFile the file to read and replace when saving tasks.
+     */
+    TaskStorage(Path taskFile) {
+        this.taskFile = taskFile.toAbsolutePath();
     }
 
     /**
@@ -27,11 +49,19 @@ public final class TaskStorage {
      * @param tasks the tasks to save.
      * @throws IOException if the directory or file cannot be written.
      */
-    public static void save(List<Task> tasks) throws IOException {
+    public void save(List<Task> tasks) throws IOException {
+        List<String> lines = serializeTasks(tasks);
+        Files.createDirectories(taskFile.getParent());
+        replaceTaskFile(lines);
+    }
+
+    /**
+     * Converts tasks to saved lines after validating the list and its elements.
+     */
+    private static List<String> serializeTasks(List<Task> tasks) {
         if (tasks == null) {
             throw new IllegalArgumentException("The task list cannot be null.");
         }
-        Files.createDirectories(TASK_FILE.getParent());
         List<String> lines = new ArrayList<>();
         for (Task task : tasks) {
             if (task == null) {
@@ -39,8 +69,15 @@ public final class TaskStorage {
             }
             lines.add(task.toStorageString());
         }
+        return lines;
+    }
+
+    /**
+     * Writes complete task data before replacing the existing file and cleans up on failure.
+     */
+    private void replaceTaskFile(List<String> lines) throws IOException {
         Path temporaryFile = Files.createTempFile(
-                TASK_FILE.getParent(), TASK_FILE.getFileName().toString(), ".tmp");
+                taskFile.getParent(), taskFile.getFileName().toString(), ".tmp");
         boolean hasMoved = false;
         try {
             Files.write(
@@ -49,21 +86,24 @@ public final class TaskStorage {
                     StandardCharsets.UTF_8,
                     StandardOpenOption.TRUNCATE_EXISTING,
                     StandardOpenOption.WRITE);
-            try {
-                Files.move(
-                        temporaryFile,
-                        TASK_FILE,
-                        StandardCopyOption.ATOMIC_MOVE,
-                        StandardCopyOption.REPLACE_EXISTING);
-                hasMoved = true;
-            } catch (AtomicMoveNotSupportedException exception) {
-                Files.move(temporaryFile, TASK_FILE, StandardCopyOption.REPLACE_EXISTING);
-                hasMoved = true;
-            }
+            moveTaskFile(temporaryFile);
+            hasMoved = true;
         } finally {
             if (!hasMoved) {
                 Files.deleteIfExists(temporaryFile);
             }
+        }
+    }
+
+    /**
+     * Replaces the task file atomically when the file system supports it.
+     */
+    private void moveTaskFile(Path temporaryFile) throws IOException {
+        try {
+            Files.move(temporaryFile, taskFile,
+                    StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException exception) {
+            Files.move(temporaryFile, taskFile, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
@@ -74,13 +114,13 @@ public final class TaskStorage {
      * @throws IOException if the data file cannot be read.
      * @throws IllegalArgumentException if a saved line has an invalid format.
      */
-    public static List<Task> load() throws IOException {
-        if (Files.notExists(TASK_FILE)) {
+    public List<Task> load() throws IOException {
+        if (Files.notExists(taskFile)) {
             return new ArrayList<>();
         }
 
         List<Task> tasks = new ArrayList<>();
-        List<String> lines = Files.readAllLines(TASK_FILE, StandardCharsets.UTF_8);
+        List<String> lines = Files.readAllLines(taskFile, StandardCharsets.UTF_8);
         for (int index = 0; index < lines.size(); index++) {
             String line = lines.get(index);
             if (!line.isBlank()) {
@@ -105,29 +145,30 @@ public final class TaskStorage {
      */
     private static Task parseTask(String line) {
         List<String> fields = splitFields(line);
-        if (fields.size() < 3) {
+        if (fields.size() < FIELD_COUNT_TODO) {
             throw new IllegalArgumentException("A saved task must have a type, status, and description.");
         }
 
-        boolean isDone = switch (fields.get(1)) {
+        boolean isDone = switch (fields.get(FIELD_INDEX_STATUS)) {
             case "0" -> false;
             case "1" -> true;
             default -> throw new IllegalArgumentException("A saved task status must be 0 or 1.");
         };
 
-        TaskType taskType = TaskType.fromMarker(fields.get(0));
+        TaskType taskType = TaskType.parseMarker(fields.get(FIELD_INDEX_TYPE));
         Task task = switch (taskType) {
             case TODO -> {
-                requireFieldCount(fields, 3);
-                yield new Todo(fields.get(2));
+                requireFieldCount(fields, FIELD_COUNT_TODO);
+                yield new Todo(fields.get(FIELD_INDEX_DESCRIPTION));
             }
             case DEADLINE -> {
-                requireFieldCount(fields, 4);
-                yield new Deadline(fields.get(2), fields.get(3));
+                requireFieldCount(fields, FIELD_COUNT_DEADLINE);
+                yield new Deadline(fields.get(FIELD_INDEX_DESCRIPTION), fields.get(FIELD_INDEX_DEADLINE));
             }
             case EVENT -> {
-                requireFieldCount(fields, 5);
-                yield new Event(fields.get(2), fields.get(3), fields.get(4));
+                requireFieldCount(fields, FIELD_COUNT_EVENT);
+                yield new Event(fields.get(FIELD_INDEX_DESCRIPTION),
+                        fields.get(FIELD_INDEX_START), fields.get(FIELD_INDEX_END));
             }
             default -> throw new IllegalStateException("Unhandled task type: " + taskType);
         };
@@ -170,19 +211,26 @@ public final class TaskStorage {
                 if (index + 1 >= line.length()) {
                     throw new IllegalArgumentException("A saved task has an incomplete escape sequence.");
                 }
-                char escapedCharacter = line.charAt(++index);
-                switch (escapedCharacter) {
-                    case '\\' -> field.append('\\');
-                    case '|' -> field.append('|');
-                    case 'n' -> field.append('\n');
-                    case 'r' -> field.append('\r');
-                    default -> field.append('\\').append(escapedCharacter);
-                }
+                index++;
+                field.append(decodeEscape(line.charAt(index)));
             } else {
                 field.append(character);
             }
         }
         fields.add(field.toString().trim());
         return fields;
+    }
+
+    /**
+     * Decodes a known escape while preserving the backslash for an unknown escape.
+     */
+    private static String decodeEscape(char escapedCharacter) {
+        return switch (escapedCharacter) {
+            case '\\' -> "\\";
+            case '|' -> "|";
+            case 'n' -> "\n";
+            case 'r' -> "\r";
+            default -> "\\" + escapedCharacter;
+        };
     }
 }

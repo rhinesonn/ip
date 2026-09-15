@@ -33,7 +33,7 @@ public class Deadline extends Task {
      * @param by the date by which the task should be completed.
      */
     public Deadline(String description, LocalDate by) {
-        this(description, dateOnly(by));
+        this(description, convertDateOnly(by));
     }
 
     /**
@@ -46,7 +46,9 @@ public class Deadline extends Task {
         this(description, new DateTimeParser.ParsedDateTime(by, true));
     }
 
-    /** Creates a deadline from an already parsed date/time value. */
+    /**
+     * Creates a deadline from an already parsed date/time value.
+     */
     private Deadline(String description, DateTimeParser.ParsedDateTime by) {
         super(description);
         if (by == null) {
@@ -57,7 +59,7 @@ public class Deadline extends Task {
     }
 
     /**
-     * Returns the deadline text.
+     * Returns the deadline date and optional time.
      *
      * @return the date and optional time attached to this deadline.
      */
@@ -65,7 +67,9 @@ public class Deadline extends Task {
         return by;
     }
 
-    /** Returns the deadline task type used for display and storage. */
+    /**
+     * Returns the deadline task type used for display and storage.
+     */
     @Override
     protected TaskType getTaskType() {
         return TaskType.DEADLINE;
@@ -94,8 +98,10 @@ public class Deadline extends Task {
         return fields;
     }
 
-    /** Converts a date-only constructor argument into the shared parsed representation. */
-    private static DateTimeParser.ParsedDateTime dateOnly(LocalDate date) {
+    /**
+     * Converts a date-only constructor argument into the shared parsed representation.
+     */
+    private static DateTimeParser.ParsedDateTime convertDateOnly(LocalDate date) {
         if (date == null) {
             throw new IllegalArgumentException("A deadline cannot be null.");
         }

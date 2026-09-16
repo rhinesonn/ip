@@ -1,5 +1,6 @@
 package caitlyn;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -199,6 +200,56 @@ class TaskStorageTest {
                 "E | 0 | reversed | 2027-01-25 | 2027-01-15",
                 "E | 1 | equal | 2027-01-15T09:00 | 2027-01-15T09:00",
                 "W | 0 | new task | 2027-01-15T09:00 | 2027-01-25"), Files.readAllLines(taskFile));
+    }
+
+    @Test
+    void load_invalidLegacyDatesAndFieldCounts_reportsCauseAndPhysicalLine() throws IOException {
+        for (String line : List.of("D | 0 | task", "D | 0 | task | 2027-01-15 | extra",
+                "E | 0 | task | 2027-01-15", "E | 0 | task | 2027-01-15 | 2027-01-25 | extra",
+                "D | 0 | task | tomorrow", "E | 0 | task | tomorrow | 2027-01-25",
+                "E | 0 | task | 2027-01-15 | tomorrow", "D | 0 | task |")) {
+            writeTaskFile(List.of("", "T | 1 | keep", "  ", line));
+            byte[] original = Files.readAllBytes(taskFile);
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, storage::load, line);
+            assertTrue(exception.getMessage().startsWith("Invalid saved task on line 4:"), line);
+            assertInstanceOf(IllegalArgumentException.class, exception.getCause(), line);
+            assertArrayEquals(original, Files.readAllBytes(taskFile), line);
+        }
+    }
+
+    @Test
+    void save_emptyList_replacesExistingDataAndLeavesNoTemporaryFiles() throws IOException {
+        storage.save(List.of(new Todo("remove this")));
+        storage.save(List.of());
+        assertEquals("", Files.readString(taskFile));
+        assertTrue(storage.load().isEmpty());
+        try (var files = Files.list(taskFile.getParent())) {
+            assertEquals(List.of(taskFile), files.toList());
+        }
+    }
+
+    @Test
+    void saveAndLoad_unicodeAndEscapeCombinations_preservesEveryTaskType() throws IOException {
+        String description = "阅读 📚 café | \\n literal \\r \\| \\\\ end";
+        List<Task> tasks = List.of(new Todo(description), new Deadline(description, "2027-01-15"),
+                new Event(description, "2027-01-15", "2027-01-25"),
+                new WithinTask(description, "2027-01-15", "2027-01-25"));
+        tasks.forEach(Task::markAsDone);
+        storage.save(tasks);
+        assertEquals(tasks.stream().map(Task::toString).toList(),
+                storage.load().stream().map(Task::toString).toList());
+        assertEquals(tasks.stream().map(Task::toStorageString).toList(),
+                Files.readAllLines(taskFile, StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void load_windowsAndUnixLineEndings_readsSameTasks() throws IOException {
+        for (String newline : List.of("\n", "\r\n", "\r")) {
+            Files.createDirectories(taskFile.getParent());
+            Files.writeString(taskFile, "T | 1 | 阅读" + newline + "T | 0 | café" + newline);
+            assertEquals(List.of("[T][X] 阅读", "[T][ ] café"),
+                    storage.load().stream().map(Task::toString).toList());
+        }
     }
 
     /** Writes a temporary task file and verifies that loading reports the expected problem. */

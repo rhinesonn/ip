@@ -2,12 +2,32 @@ plugins {
     id 'java'
     id 'application'
     id 'checkstyle'
+    id 'jacoco'
     id 'com.gradleup.shadow' version '9.5.1'
 }
 
 checkstyle {
     toolVersion = '11.0.0'
 }
+
+jacoco {
+    toolVersion = '0.8.14'
+}
+
+jacocoTestReport {
+    dependsOn test
+    executionData(fileTree(layout.buildDirectory.dir('jacoco')) { include '**/*.exec' })
+    reports {
+        html.required = true
+        xml.required = true
+    }
+    // JavaFX layout, event wiring, and startup are covered by the manual GUI plan.
+    classDirectories.setFrom(sourceSets.main.output.asFileTree.matching {
+        exclude 'caitlyn/CaitlynGui*', 'caitlyn/Launcher*'
+    })
+}
+
+test.finalizedBy jacocoTestReport
 
 java {
     sourceCompatibility = JavaVersion.VERSION_25
@@ -45,10 +65,15 @@ dependencies {
 test {
     useJUnitPlatform()
 
+    // Child CLI processes use their own coverage files and temporary working directories.
+    def cliCoverageDirectory = layout.buildDirectory.dir('jacoco/cli')
+    systemProperty 'caitlyn.cliCoverageDirectory', cliCoverageDirectory.get().asFile.absolutePath
+
     // Storage tests use relative paths; keep their files away from the user's saved tasks.
     workingDir = layout.buildDirectory.dir('test-workspace').get().asFile
     doFirst {
         workingDir.mkdirs()
+        delete cliCoverageDirectory
     }
 
     testLogging {

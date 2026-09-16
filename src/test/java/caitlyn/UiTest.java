@@ -5,10 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 
 /** Tests the UI output adapter used by both Caitlyn interfaces. */
 public class UiTest {
@@ -91,5 +99,72 @@ public class UiTest {
     public void graphicalAdapter_missingDestination_rejectsConfiguration() {
         assertThrows(IllegalArgumentException.class, () -> new Ui(message -> { }, null));
         assertThrows(IllegalArgumentException.class, () -> new Ui(null, message -> { }));
+    }
+
+    @Test
+    public void readCommand_scannerInput_trimsLinesAndDetectsEndOfInput() {
+        try (Scanner scanner = new Scanner("  todo read book  \r\n\t \nlist")) {
+            Ui ui = new Ui(scanner);
+            assertTrue(ui.hasNextCommand());
+            assertTrue(ui.hasNextCommand());
+            assertEquals("todo read book", ui.readCommand());
+            assertTrue(ui.hasNextCommand());
+            assertEquals("", ui.readCommand());
+            assertTrue(ui.hasNextCommand());
+            assertEquals("list", ui.readCommand());
+            assertFalse(ui.hasNextCommand());
+            assertThrows(NoSuchElementException.class, ui::readCommand);
+        }
+    }
+
+    @Test
+    public void readCommand_outputOnlyAdapter_reportsMissingInput() {
+        Ui ui = new Ui(message -> { });
+        assertThrows(IllegalStateException.class, ui::readCommand);
+        assertThrows(IllegalArgumentException.class, () -> new Ui((Scanner) null));
+        assertThrows(IllegalArgumentException.class, () -> new Ui((Consumer<String>) null));
+    }
+
+    @Test
+    public void showTasks_emptyLists_emitsOnlyHeadings() {
+        List<String> messages = new ArrayList<>();
+        Ui ui = new Ui(messages::add);
+        ui.showTasks(List.of());
+        ui.showMatchingTasks(List.of(new Todo("unmatched")), List.of());
+        assertEquals(List.of("     Here are the tasks in your list:",
+                "     Here are the matching tasks in your list:"), messages);
+    }
+
+    @Test
+    public void showTaskChanges_completedTask_emitsCompleteConfirmations() {
+        List<String> messages = new ArrayList<>();
+        Ui ui = new Ui(messages::add);
+        Task task = new Todo("read book");
+        task.markAsDone();
+        ui.showTaskStatus(task, true);
+        task.markAsNotDone();
+        ui.showTaskStatus(task, false);
+        ui.showTaskDeleted(task, 0);
+        ui.showFarewell();
+        assertEquals(List.of("     As you wish, master. I have marked this task as done:",
+                "       [T][X] read book", "     Of course, master. I have marked this task as not done yet:",
+                "       [T][ ] read book", "     Noted. I've removed this task:", "       [T][ ] read book",
+                "     Now you have 0 tasks in the list.",
+                "     Farewell, master. It has been my pleasure to serve you."), messages);
+    }
+
+    @Test
+    @ResourceLock(Resources.SYSTEM_OUT)
+    public void scannerAdapter_responses_writesToConsole() {
+        PrintStream originalOutput = System.out;
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+        try (PrintStream output = new PrintStream(captured, true, StandardCharsets.UTF_8);
+                Scanner scanner = new Scanner("")) {
+            System.setOut(output);
+            new Ui(scanner).showError("example error");
+            assertEquals("     example error" + System.lineSeparator(), captured.toString(StandardCharsets.UTF_8));
+        } finally {
+            System.setOut(originalOutput);
+        }
     }
 }

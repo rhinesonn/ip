@@ -31,7 +31,9 @@ From the project root, start the GUI with:
 ./gradlew run
 ```
 
-Enter commands in the text field and press Enter or click **Send**. The GUI supports the same commands as the command-line version, including `todo`, `deadline`, `event`, `list`, `find`, `mark`, `unmark`, `delete`, and `bye`. Tasks are saved automatically in `data/duke.txt` after changes.
+Enter commands in the text field and press Enter or click **Send**. The GUI supports the same commands as the command-line version, including `todo`, `deadline`, `event`, `within`, `list`, `find`, `mark`, `unmark`, `delete`, and `bye`. Tasks are saved automatically in `data/duke.txt` after changes.
+
+Use `within collect certificate /from 2027-01-15 /to 2027-01-25` for an action that can be completed once during a window. See the [within-period task guide](docs/README.md#within-period-tasks) for formats, examples, and saved-data recovery.
 
 To continue using the command-line version directly, run `caitlyn.Caitlyn` from IntelliJ or use the command-line instructions below.
 

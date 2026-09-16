@@ -29,4 +29,13 @@ public class UiTest {
 
         assertFalse(ui.hasNextCommand());
     }
+
+    @Test
+    public void showLoadingError_failedLoad_explainsProtectionAndRecovery() {
+        List<String> messages = new ArrayList<>();
+        new Ui(messages::add).showLoadingError();
+        assertEquals(List.of("     I could not read data/duke.txt. Task changes are disabled "
+                + "to protect your saved data. Repair the file or its access permissions, "
+                + "then restart Caitlyn."), messages);
+    }
 }

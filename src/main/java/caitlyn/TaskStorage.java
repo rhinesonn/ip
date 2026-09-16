@@ -23,6 +23,7 @@ public final class TaskStorage {
     private static final int FIELD_COUNT_TODO = 3;
     private static final int FIELD_COUNT_DEADLINE = 4;
     private static final int FIELD_COUNT_EVENT = 5;
+    private static final int FIELD_COUNT_WITHIN = 5;
 
     /** The file used by this storage instance, allowing tests to use temporary files. */
     private final Path taskFile;
@@ -168,6 +169,11 @@ public final class TaskStorage {
             case EVENT -> {
                 requireFieldCount(fields, FIELD_COUNT_EVENT);
                 yield new Event(fields.get(FIELD_INDEX_DESCRIPTION),
+                        fields.get(FIELD_INDEX_START), fields.get(FIELD_INDEX_END));
+            }
+            case WITHIN -> {
+                requireFieldCount(fields, FIELD_COUNT_WITHIN);
+                yield new WithinTask(fields.get(FIELD_INDEX_DESCRIPTION),
                         fields.get(FIELD_INDEX_START), fields.get(FIELD_INDEX_END));
             }
             default -> throw new IllegalStateException("Unhandled task type: " + taskType);

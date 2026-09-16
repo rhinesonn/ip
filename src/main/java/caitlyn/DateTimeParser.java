@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Parses and formats the date and time values used by deadline and event tasks.
+ * Parses and formats the date and time values used by dated tasks.
  */
 public final class DateTimeParser {
     /** Format used when displaying dates without a time. */

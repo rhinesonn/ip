@@ -45,6 +45,12 @@ dependencies {
 test {
     useJUnitPlatform()
 
+    // Storage tests use relative paths; keep their files away from the user's saved tasks.
+    workingDir = layout.buildDirectory.dir('test-workspace').get().asFile
+    doFirst {
+        workingDir.mkdirs()
+    }
+
     testLogging {
         events 'passed', 'skipped', 'failed'
 

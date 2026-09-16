@@ -1,150 +1,148 @@
 # Caitlyn User Guide
 
-## Within-period tasks
+Caitlyn is your desktop task assistant: a polite butler for your slightly less polite workload. Keep track of to-dos, deadlines, events, and tasks you can complete within a date window by typing simple commands.
 
-A within-period task is an action you complete once at any point during an inclusive window. It is distinct from an event that takes place from start to end.
+![Caitlyn showing a populated task list](Ui.png)
+
+[Quick start](#quick-start) · [Features](#features) · [Dates and times](#dates-and-times) · [Saving and troubleshooting](#saving-and-troubleshooting)
+
+## Quick start
+
+1. Set up **Java 25 with JavaFX**. See the [project setup instructions](../README.md#setting-up-in-intellij) if you have not set up the project yet. On macOS with SDKMAN, select it with `sdk use java 25.0.3.fx-zulu`.
+2. Open a terminal in the project folder and run `./gradlew run` (`gradlew.bat run` on Windows). Caitlyn's window opens. To run a packaged JAR instead, follow the [JAR instructions](../README.md#building-and-running-a-fat-jar).
+3. Type `todo Review lecture notes` in the command box, then press **Enter** or click **Send**. Caitlyn confirms the new task and updates the saved task count.
+4. Enter `list` to see your tasks. Try `mark 1` to complete the first task.
+
+Need a syntax reminder? Click **Commands** and choose an example. It fills the command box so you can edit it before sending. You can resize the window, scroll through earlier replies, or right-click a message and choose **Copy message**.
+
+## Features
+
+Enter one command at a time. Command names and markers such as `/by` are **lowercase**. In the formats below, replace uppercase placeholders with your own text; do not type the placeholders. Descriptions may contain spaces and need no quotation marks. Keep the date markers in the order shown.
+
+### Add a to-do
+
+Use a to-do for something without a date. Give that “I should really do this” thought somewhere to live.
+
+Format: `todo DESCRIPTION`
+
+Example: `todo Review lecture notes`
+
+Caitlyn adds an incomplete task shown as `[T][ ] Review lecture notes` and confirms the total number of tasks.
+
+### Add a deadline
+
+Use a deadline for something due by a particular date or time. Caitlyn will record it; negotiating an extension is still your department.
+
+Format: `deadline DESCRIPTION /by DATE`
+
+Example: `deadline Submit project proposal /by 2026-09-21 1800`
+
+The new task appears as:
 
 ```text
-within DESCRIPTION /from START /to END
+[D][ ] Submit project proposal (by: Sep 21 2026 6:00 PM)
 ```
 
-Use lowercase `within`, `/from`, and `/to`. Provide a nonempty description and both boundaries, with exactly one `/from` followed by exactly one `/to`. Surrounding whitespace and spaces or tabs between command parts are accepted; internal description whitespace is preserved. Standalone `/from` and `/to` are reserved and cannot appear in a command description. Words such as `/fromage`, pipes, and backslashes are ordinary description text. There is no quoting or escape syntax for commands.
+### Add an event
 
-### Dates, times, and boundaries
+Use an event for an activity that takes place from a start to an end. Even a team meeting deserves an end time.
 
-Each boundary requires a full date. These formats are accepted independently at either end:
+Format: `event DESCRIPTION /from START /to END`
 
-| Format | Example |
+Example: `event Team planning session /from 2026-09-18 1400 /to 2026-09-18 1500`
+
+Caitlyn adds an `[E][ ]` task and displays both times. Include a full date at each end, even for a meeting on the same day.
+
+### Within-period tasks
+
+Use a within-period task for an action you can complete **once at any point during a window**, such as collecting library books. Pick them up once; no need to move into the library.
+
+Format: `within DESCRIPTION /from START /to END`
+
+Example: `within Collect library books /from 2026-09-17 /to 2026-09-23`
+
+The new task appears as:
+
+```text
+[W][ ] Collect library books (within: Sep 17 2026 to: Sep 23 2026)
+```
+
+Both boundaries are inclusive. A date-only start begins that day; a date-only end includes the whole day. You can mix dates and date-times. Equal dates give a one-day window, and the start must not be after the end. Use `/from` followed by `/to` exactly once; these standalone markers cannot be part of the description.
+
+### View your tasks
+
+Command: `list`
+
+Shows all tasks, including completed ones, in the order you added them. If you add the four examples above to an empty list, the first two entries are:
+
+```text
+1.[T][ ] Review lecture notes
+2.[D][ ] Submit project proposal (by: Sep 21 2026 6:00 PM)
+```
+
+The first number identifies the task. `[T]`, `[D]`, `[E]`, and `[W]` mean to-do, deadline, event, and within-period task. `[ ]` means incomplete; `[X]` means complete. An empty list shows only the reply heading.
+
+### Find tasks
+
+Remember “project” but not where you put it? Caitlyn can rummage through the list for you.
+
+Format: `find KEYWORD`
+
+Example: `find project`
+
+Finds descriptions containing the text, ignoring letter case. The example finds “Submit project proposal”. Partial words also match; multiple words are searched as one phrase. Dates and task types are not searched. No matches means the reply contains only its heading.
+
+Results keep their **original task numbers**, so a result labelled `2.` is still task 2 when you mark or delete it.
+
+### Complete or reopen a task
+
+Finished? Enjoy your little victory. Celebrated too early? `unmark` understands.
+
+| Action | Format | Example | Result |
+| --- | --- | --- | --- |
+| Complete a task | `mark NUMBER` | `mark 1` | Changes task 1 to `[X]`. |
+| Reopen a task | `unmark NUMBER` | `unmark 1` | Changes task 1 back to `[ ]`. |
+
+Use a positive task number from the latest list. Completion is manual for every task type; Caitlyn does not send reminders or automatically complete overdue tasks.
+
+### Delete a task
+
+Format: `delete NUMBER`
+
+Example: `delete 1`
+
+Removes task 1 and confirms the remaining count. **There is no undo or confirmation prompt.** Later tasks are renumbered, so use `list` again before choosing another number. To change a description or date, delete the old task and add its replacement; there is no edit command.
+
+### End your session
+
+Command: `bye`
+
+Caitlyn says goodbye and disables command entry. Butler dismissed, tasks safely tucked away. The conversation stays visible until you close the window. Reopen Caitlyn to start another session; your saved tasks remain available.
+
+## Dates and times
+
+Use a real calendar date in any of these formats:
+
+| Input style | Examples |
 | --- | --- |
-| ISO date | `2027-01-15` |
-| Day/month/year | `15/1/2027` |
-| Date and compact 24-hour time | `2027-01-15 0900`, `15/1/2027 0900` |
-| Date and colon-separated 24-hour time | `2027-01-15 09:00`, `15/1/2027 09:00` |
-| ISO local date-time | `2027-01-15T09:00` |
+| Year-month-day | `2026-09-21` |
+| Day/month/year | `21/9/2026` |
+| Date with 24-hour time | `2026-09-21 1800`, `21/9/2026 1800` |
+| Date with a colon in the time | `2026-09-21 18:00`, `21/9/2026 18:00` |
+| ISO date-time | `2026-09-21T18:00` |
 
-Both endpoints are inclusive. A date-only start begins that day, and a date-only end includes the whole day. You may mix date-only and timed boundaries. Equal dates mean a whole-day window; equal timed endpoints mean a single instant. The start cannot be after the effective end.
+Caitlyn displays dates as `Sep 21 2026` and times as `6:00 PM`. Use minute precision; `within` rejects nonzero seconds or fractional seconds. Words such as `tomorrow`, times without dates, and timezone offsets are not supported. Past dates and duplicate tasks are allowed.
 
-Times use minute precision. ISO inputs with zero seconds/fractions, such as `2027-01-15T09:00:00.000`, are accepted and normalized. Nonzero seconds/fractions are rejected. Natural dates, time-only endpoints, and timezone offsets are not supported.
+## Saving and troubleshooting
 
-Past windows, duplicates, overlaps, and windows of any duration supported by the date parser are allowed. Completion is manual: you can mark or unmark at any time. There are no automatic expiry labels, reminders, completion timestamps, or window-editing commands.
+Task changes save automatically to `data/duke.txt` inside the folder from which you launch Caitlyn. Start it from the same folder each time to load the same list. Conversation history is not saved. To back up your tasks, close Caitlyn and copy this file somewhere safe. Avoid opening the same task file in multiple app instances.
 
-### Examples and responses
-
-The following output is the GUI response text. The CLI adds its existing indentation and separator lines.
-
-Starting with an empty list:
-
-```text
-within collect certificate /from 2027-01-15 /to 2027-01-25
-```
-
-```text
-Got it. I've added this task:
-[W][ ] collect certificate (within: Jan 15 2027 to: Jan 25 2027)
-Now you have 1 tasks in the list.
-```
-
-These additional examples show the task line included in the usual add confirmation:
-
-| Command | Task line |
+| Problem | What to do |
 | --- | --- |
-| `within collect certificate /from 15/1/2027 0900 /to 25/1/2027 17:00` | `[W][ ] collect certificate (within: Jan 15 2027 9:00 AM to: Jan 25 2027 5:00 PM)` |
-| `within submit form /from 2027-01-15 0900 /to 2027-01-15` | `[W][ ] submit form (within: Jan 15 2027 9:00 AM to: Jan 15 2027)` |
-| `within submit form /from 2027-01-15 /to 2027-01-15` | `[W][ ] submit form (within: Jan 15 2027 to: Jan 15 2027)` |
-| `within press button /from 2027-01-15T09:00 /to 2027-01-15T09:00` | `[W][ ] press button (within: Jan 15 2027 9:00 AM to: Jan 15 2027 9:00 AM)` |
+| A command is rejected | Read Caitlyn's error, check lowercase spelling, required descriptions and date markers, then correct the selected input and send again. Rejected commands leave your tasks unchanged. |
+| A task number is invalid | Run `list` and choose an existing number starting from 1. |
+| “I could not save your tasks to disk.” | Check that the launch folder and `data/duke.txt` are writable and that disk space is available, then retry. The failed change has been rolled back. |
+| “Saved tasks unavailable · Changes disabled” | Close Caitlyn and back up `data/duke.txt`. Restore a valid backup or repair the file/access permissions, then restart. The protected session loads no tasks and blocks changes to preserve the original file; `list`, `find`, and `bye` still work. |
+| Your saved list seems missing | Check that you launched from the usual folder. A missing save file starts a new empty list. |
 
-Within-period tasks support `list`, `find KEYWORD`, `mark NUMBER`, `unmark NUMBER`, and `delete NUMBER`. List order is insertion order; completed tasks remain visible. Search is case-insensitive, matches descriptions only, and retains original list numbers. Deletion renumbers the remaining tasks.
-
-For the first example, `mark 1` responds:
-
-```text
-As you wish, master. I have marked this task as done:
-[W][X] collect certificate (within: Jan 15 2027 to: Jan 25 2027)
-```
-
-### Invalid commands
-
-Rejected commands do not change tasks or their saved file. Errors are checked in this order: load-failure protection, command structure, start date and precision, end date and precision, then window order. Only the first applicable error is shown.
-
-| Invalid input | Exact response |
-| --- | --- |
-| `within task /from 2027-01-15` | `I beg your pardon, master. Please use: within task /from start /to end. Provide a description and both boundaries, with /from followed by /to exactly once.` |
-| `within task /from 2027-02-30 /to 2027-03-05` | `I beg your pardon, master. Please provide a valid start date, for example: 2027-01-15 or 15/1/2027 0900.` |
-| `within task /from 2027-01-15 /to tomorrow` | `I beg your pardon, master. Please provide a valid end date, for example: 2027-01-25 or 25/1/2027 1700.` |
-| `within task /from 2027-01-15T09:00:01 /to 2027-01-25` | `I beg your pardon, master. The start time must use minute precision; seconds and fractional seconds must be zero.` |
-| `within task /from 2027-01-15 /to 2027-01-25T17:00:00.001` | `I beg your pardon, master. The end time must use minute precision; seconds and fractional seconds must be zero.` |
-| `within task /from 2027-01-26 /to 2027-01-25` | `I beg your pardon, master. The start of the window must not be after its end.` |
-| `WITHIN task /from 2027-01-15 /to 2027-01-25` | `I humbly beg your pardon, master. I do not know how to carry out that command.` |
-
-Missing descriptions, empty boundaries, repeated markers, reversed marker order, and malformed markers such as `/from2027-01-15` produce the structure error. Extra text in a boundary, such as `/to 2027-01-25 extra`, produces the corresponding invalid-date error.
-
-### Saving and compatibility
-
-Successful task changes are saved automatically before success is reported. If saving fails, the in-memory change is rolled back and Caitlyn responds:
-
-```text
-I beg your pardon, master. I could not save your tasks to disk.
-```
-
-The UTF-8 file is `data/duke.txt`, relative to the directory from which you run Caitlyn. A within-period record has exactly five fields:
-
-```text
-W | STATUS | DESCRIPTION | START | END
-```
-
-Status is `0` for incomplete and `1` for complete. Dates are saved as ISO dates or local date-times, preserving whether a time was supplied:
-
-```text
-W | 0 | collect certificate | 2027-01-15 | 2027-01-25
-W | 1 | collect certificate | 2027-01-15T09:00 | 2027-01-25T17:00
-W | 0 | submit form | 2027-01-15T09:00 | 2027-01-15
-```
-
-The existing storage escaping is retained: `\` becomes `\\`, `|` becomes `\|`, and line breaks use `\n` or `\r`. For example, `collect | file \backup` is stored as `collect \| file \\backup`. Loading accepts the existing date parser's formats and validates descriptions, precision, and window order. Command marker restrictions do not apply to text already inside a stored description.
-
-Existing `T`, `D`, and `E` records retain their meaning and validation; no migration is required. Older Caitlyn builds cannot read `W` records. Do not open a file containing them in an older build: it may start empty after the loading error and overwrite saved tasks after a later change. There is no downgrade/export feature.
-
-### Recovery after a load failure
-
-A missing save file is normal first-time use. An invalid or unreadable save file starts an empty, protected session in both the CLI and GUI. No partial set of records is loaded and the original file is left unchanged. The startup message is:
-
-```text
-I could not read data/duke.txt. Task changes are disabled to protect your saved data. Repair the file or its access permissions, then restart Caitlyn.
-```
-
-`list`, `find`, and `bye` remain available. Every recognized task-changing command (`todo`, `deadline`, `event`, `within`, `mark`, `unmark`, `delete`) instead responds:
-
-```text
-I beg your pardon, master. Task changes are disabled because saved tasks could not be loaded. Repair data/duke.txt or its access permissions, then restart Caitlyn.
-```
-
-Open the saved file in a text editor and correct invalid field counts, task/status markers, dates, or window order, or restore access to the file if permissions prevented reading it. Restart Caitlyn after repairing it. Repairs made while the app is still open do not unlock that session. There is no built-in repair command or automatic backup. An ordinary save failure after a successful load does not permanently lock the session.
-
-// Update the title above to match the actual product name
-
-// Product screenshot goes here
-
-// Product intro goes here
-
-## Adding deadlines
-
-// Describe the action and its outcome.
-
-// Give examples of usage
-
-Example: `keyword (optional arguments)`
-
-// A description of the expected outcome goes here
-
-```
-expected output
-```
-
-## Feature ABC
-
-// Feature details
-
-
-## Feature XYZ
-
-// Feature details
+Keep backups when changing app versions: older versions without `within` support cannot read `[W]` tasks and may overwrite their saved data. Use the current version for lists containing within-period tasks.

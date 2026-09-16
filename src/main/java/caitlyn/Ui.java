@@ -25,6 +25,12 @@ public final class Ui {
     /** Destination for messages produced by Caitlyn. */
     private final Consumer<String> output;
 
+    /** Destination for errors, allowing the GUI to distinguish them from replies. */
+    private final Consumer<String> errorOutput;
+
+    /** Whether to include the banner and separators used by the console. */
+    private final boolean hasConsoleDecoration;
+
     /**
      * Creates a UI connected to the standard input and output streams.
      */
@@ -47,7 +53,17 @@ public final class Ui {
      * @param output destination for responses produced by Caitlyn.
      */
     public Ui(Consumer<String> output) {
-        this(null, output);
+        this((Scanner) null, output);
+    }
+
+    /**
+     * Creates a graphical output adapter without console banners or separators.
+     *
+     * @param output destination for ordinary responses.
+     * @param errorOutput destination for errors, including startup loading failures.
+     */
+    public Ui(Consumer<String> output, Consumer<String> errorOutput) {
+        this(null, output, errorOutput, false);
     }
 
     /**
@@ -57,11 +73,21 @@ public final class Ui {
      * @param output destination for responses produced by Caitlyn.
      */
     private Ui(Scanner scanner, Consumer<String> output) {
-        if (output == null) {
-            throw new IllegalArgumentException("The UI output cannot be null.");
+        this(scanner, output, output, true);
+    }
+
+    /**
+     * Configures input, response destinations, and console decoration independently.
+     */
+    private Ui(Scanner scanner, Consumer<String> output, Consumer<String> errorOutput,
+            boolean hasConsoleDecoration) {
+        if (output == null || errorOutput == null) {
+            throw new IllegalArgumentException("The UI output destinations cannot be null.");
         }
         this.scanner = scanner;
         this.output = output;
+        this.errorOutput = errorOutput;
+        this.hasConsoleDecoration = hasConsoleDecoration;
     }
 
     /**
@@ -79,7 +105,9 @@ public final class Ui {
      */
     public void showWelcome() {
         showSeparator();
-        output.accept(BANNER);
+        if (hasConsoleDecoration) {
+            output.accept(BANNER);
+        }
         output.accept("Good day, master. I am Caitlyn, humbly at your service.");
         output.accept("How may I serve you today?");
         showSeparator();
@@ -110,7 +138,9 @@ public final class Ui {
      * Displays the standard conversation separator.
      */
     public void showSeparator() {
-        output.accept(SEPARATOR);
+        if (hasConsoleDecoration) {
+            output.accept(SEPARATOR);
+        }
     }
 
     /**
@@ -134,7 +164,7 @@ public final class Ui {
      * @param message the error text to display.
      */
     public void showError(String message) {
-        output.accept("     " + message);
+        errorOutput.accept("     " + message);
     }
 
     /**

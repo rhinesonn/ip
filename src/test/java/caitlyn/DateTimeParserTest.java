@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -68,5 +69,29 @@ class DateTimeParserTest {
     @Test
     void parsedDateTime_rejectsNullValue() {
         assertThrows(IllegalArgumentException.class, () -> new DateTimeParser.ParsedDateTime(null, false));
+    }
+
+    @Test
+    void parse_calendarAndClockBoundaries_rejectsRollover() {
+        for (String input : List.of("1900-02-29", "2027-04-31", "2027-00-15", "2027-13-15",
+                "2027-01-00", "2027-01-32", "2027-01-15 2400", "2027-01-15 1260",
+                "2027-01-15T09:00Z", "2027-01-15T09:00+08:00", "2027-01-15 trailing")) {
+            assertThrows(IllegalArgumentException.class, () -> DateTimeParser.parse(input), input);
+        }
+        assertEquals(LocalDateTime.of(2000, 2, 29, 0, 0), DateTimeParser.parse("2000-02-29").value());
+    }
+
+    @Test
+    void format_midnightNoonAndSeconds_preservesStoragePrecision() {
+        for (String[] example : List.of(
+                new String[]{"2027-01-15", "Jan 15 2027"},
+                new String[]{"2027-01-15T00:00", "Jan 15 2027 12:00 AM"},
+                new String[]{"2027-01-15T12:00", "Jan 15 2027 12:00 PM"},
+                new String[]{"2027-01-15T23:59:01.123", "Jan 15 2027 11:59 PM"})) {
+            DateTimeParser.ParsedDateTime parsed = DateTimeParser.parse(example[0]);
+            assertEquals(example[1], DateTimeParser.formatForDisplay(parsed));
+            assertEquals(example[0], DateTimeParser.formatForStorage(parsed));
+            assertEquals(parsed, DateTimeParser.parse(DateTimeParser.formatForStorage(parsed)));
+        }
     }
 }

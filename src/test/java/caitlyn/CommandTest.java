@@ -151,6 +151,105 @@ class CommandTest {
                 exception.getMessage());
     }
 
+    @Test
+    void execute_invalidAddArguments_preservesTasksAndSavedData() throws IOException {
+        TaskStorage storage = new TaskStorage(temporaryDirectory.resolve("tasks.txt"));
+        Task original = new Todo("keep this");
+        original.markAsDone();
+        List<Task> tasks = new ArrayList<>(List.of(original));
+        storage.save(tasks);
+        for (String input : List.of("todo", "deadline", "deadline /by 2027-01-15",
+                "deadline task /by", "deadline task /by tomorrow", "event", "event task /from 2027-01-15",
+                "event task /to 2027-01-25 /from 2027-01-15", "event /from 2027-01-15 /to 2027-01-25",
+                "event task /from /to 2027-01-25", "event task /from 2027-01-15 /to",
+                "event task /from tomorrow /to 2027-01-25", "event task /from 2027-01-15 /to tomorrow")) {
+            List<String> messages = new ArrayList<>();
+            assertThrows(CaitlynException.class, () -> Parser.parse(input, storage).execute(tasks,
+                    new Ui(messages::add)), input);
+            assertEquals(List.of(original), tasks, input);
+            assertTrue(original.isDone(), input);
+            assertEquals(List.of("T | 1 | keep this"),
+                    Files.readAllLines(temporaryDirectory.resolve("tasks.txt")), input);
+            assertTrue(messages.isEmpty(), input);
+        }
+    }
+
+    @Test
+    void execute_blankFieldsInDirectCommands_reportsMissingFields() {
+        List<Command> commands = List.of(new DeadlineCommand("  /by 2027-01-15"),
+                new DeadlineCommand("task /by "), new EventCommand("  /from 2027-01-15 /to 2027-01-25"),
+                new EventCommand("task /from /to 2027-01-25"), new EventCommand("task /from 2027-01-15 /to"));
+        for (Command command : commands) {
+            String expected = command instanceof DeadlineCommand
+                    ? "I beg your pardon, master. Please provide both a task description and a deadline."
+                    : "I beg your pardon, master. Please provide a description, start time, "
+                            + "and end time for the event.";
+            assertEquals(expected, assertThrows(CaitlynException.class, () ->
+                    command.execute(new ArrayList<>(), new Ui(message -> { }))).getMessage());
+        }
+    }
+
+    @Test
+    void execute_invalidTaskNumbers_rejectsWithoutMutationOrConfirmation() throws IOException {
+        TaskStorage storage = new TaskStorage(temporaryDirectory.resolve("tasks.txt"));
+        Task original = new Todo("keep");
+        original.markAsDone();
+        List<Task> tasks = new ArrayList<>(List.of(original));
+        storage.save(tasks);
+        for (String name : List.of("mark", "unmark", "delete")) {
+            for (String argument : List.of("", "0", "-1", "2", "2147483648", "1.0", "one", "1 extra")) {
+                String input = name + " " + argument;
+                List<String> messages = new ArrayList<>();
+                assertThrows(CaitlynException.class, () -> Parser.parse(input, storage)
+                        .execute(tasks, new Ui(messages::add)), input);
+                assertEquals(List.of(original), tasks, input);
+                assertTrue(original.isDone(), input);
+                assertTrue(messages.isEmpty(), input);
+                assertEquals(List.of("T | 1 | keep"),
+                        Files.readAllLines(temporaryDirectory.resolve("tasks.txt")), input);
+            }
+            assertThrows(CaitlynException.class, () -> Parser.parse(name + " 1", storage)
+                    .execute(new ArrayList<>(), new Ui(message -> { })), name);
+        }
+    }
+
+    @Test
+    void execute_repeatedStatusAndDeletingLastTask_persistsExpectedState() throws Exception {
+        TaskStorage storage = new TaskStorage(temporaryDirectory.resolve("tasks.txt"));
+        List<Task> tasks = new ArrayList<>(List.of(new Todo("keep")));
+        List<String> messages = new ArrayList<>();
+        Ui ui = new Ui(messages::add);
+        for (String input : List.of("mark 1", "mark 1", "unmark 1", "unmark 1")) {
+            Parser.parse(input, storage).execute(tasks, ui);
+            assertEquals(input.startsWith("mark"), storage.load().getFirst().isDone());
+        }
+        Parser.parse("delete 1", storage).execute(tasks, ui);
+        assertTrue(tasks.isEmpty());
+        assertEquals("", Files.readString(temporaryDirectory.resolve("tasks.txt")));
+        assertEquals("     Now you have 0 tasks in the list.", messages.getLast());
+    }
+
+    @Test
+    void commandFlags_everyCommand_declaresExitAndMutationBehavior() {
+        for (String name : List.of("todo", "deadline", "event", "within", "mark", "unmark", "delete",
+                "list", "find", "unknown", "bye")) {
+            Command command = Parser.parse(name);
+            assertEquals(name.equals("bye"), command.isExit(), name);
+            assertEquals(List.of("list", "find", "unknown", "bye").contains(name), command.isReadOnly(), name);
+        }
+    }
+
+    @Test
+    void execute_defaultAddConstructors_validateBeforeSaving() {
+        for (Command command : List.of(new TodoCommand(""), new WithinCommand(""))) {
+            List<Task> tasks = new ArrayList<>();
+            List<String> messages = new ArrayList<>();
+            assertThrows(CaitlynException.class, () -> command.execute(tasks, new Ui(messages::add)));
+            assertTrue(tasks.isEmpty());
+            assertTrue(messages.isEmpty());
+        }
+    }
+
     /** Executes a command with an invalid task selection and checks its error message. */
     private void assertInvalidTaskSelection(Command command, String expectedMessage) {
         CaitlynException exception = assertThrows(CaitlynException.class, () ->

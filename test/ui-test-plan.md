@@ -16,6 +16,27 @@ The cases below exercise the command-line entry point. For the JavaFX entry poin
 
 For within-period tasks, launch the GUI from a temporary working directory with no saved data. Enter `within collect certificate /from 2027-01-15 /to 2027-01-25` using Enter, then `list` using Send. Verify the exact task text from case 22, `1 task saved`, and the visible `within` hint. Submit a reversed window and confirm the range error and unchanged count; use mark/unmark and then bye. In a second temporary directory, put the invalid data from case 27 in `data/duke.txt`, relaunch, and verify the startup protection error. Try `within` using Enter and `todo blocked` using Send; both must show the protection message. Check that the saved bytes are unchanged. Repair the file, verify that the running session still rejects changes, then restart and verify normal operation.
 
+## Manual environment matrix
+
+These checks complement JUnit's JVM-locale and line-ending tests. Record the OS,
+Java version, display resolution/scaling, OS language, outcome, and any screenshot
+or failure details for each run. All matrix rows below are pending manual execution;
+a passing CLI test does not count as a GUI or OS compatibility result.
+
+| Environment | Display and language combinations | Checks |
+| --- | --- | --- |
+| macOS | Native Retina scaling and scaled display; English and Chinese | Run the GUI checks above, including resizing to 380 × 360 and a larger window. |
+| Windows | 1366 × 768 at 100%, 1920 × 1080 at 150%; English and Chinese | Check wrapping, keyboard/menu focus, scrolling, and persistence after restart. |
+| Linux desktop | 1366 × 768 and 1920 × 1080; English and Chinese | Check fonts, clipboard, focus, window resizing, and persistence after restart. |
+
+On each environment, enter `todo 阅读 📚 café` using the keyboard and, for Chinese,
+the OS input method. Confirm the composed text is not sent prematurely. Add a dated
+task, then use `list`, `find 阅读`, mark/unmark, and restart. The description and
+completion state must survive; dates should retain their English display format.
+Try a long mixed English/Chinese description at the minimum window size and at
+larger sizes. Ensure task text wraps, controls remain usable, and no text is clipped.
+Use a temporary working directory for each run to keep personal task data separate.
+
 ## Test case 1: Add and list a ToDo
 
 Aim: Verify that a date-free task is stored, displayed with the `T` type marker, and included in the task count.

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,14 @@ class CommandExampleTest {
             assertEquals(example.getExample().length(), example.getSelectionStart());
             assertEquals(example.getSelectionStart(), example.getSelectionEnd());
         }
+    }
+
+    @Test
+    void getTemplate_menuEntries_displaysSyntaxForEveryCommand() {
+        assertEquals(List.of("todo <description>", "deadline <description> /by <date>",
+                "event <description> /from <start> /to <end>", "within <description> /from <start> /to <end>",
+                "list", "find <keyword>", "mark <task number>", "unmark <task number>", "delete <task number>", "bye"),
+                Arrays.stream(CommandExample.values()).map(CommandExample::getTemplate).toList());
     }
 
     /** Simulates typing over the range selected when a menu example is inserted. */

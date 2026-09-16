@@ -43,4 +43,9 @@ class TaskTest {
     void task_rejectsNullDescription() {
         assertThrows(IllegalArgumentException.class, () -> new Task(null));
     }
+
+    @Test
+    void escapeStorageField_nullField_rejectsMissingData() {
+        assertThrows(IllegalArgumentException.class, () -> Task.escapeStorageField(null));
+    }
 }

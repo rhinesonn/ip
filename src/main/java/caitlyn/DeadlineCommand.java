@@ -1,11 +1,20 @@
 package caitlyn;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * A command that creates a deadline task.
+ * Creates a deadline task from a description and a standalone date marker.
  */
 public final class DeadlineCommand extends Command {
+    /** Recognizes complete date markers rather than substrings inside descriptions. */
+    private static final Pattern DEADLINE_MARKER = Pattern.compile("(?:^|[ \\t]+)/by(?=[ \\t]|$)");
+
+    /** Explains the required spelling and placement of the deadline marker. */
+    private static final String FORMAT_ERROR = "I beg your pardon, master. Please provide a deadline in the format: "
+            + "deadline task /by date.";
+
     /** The text after the {@code deadline} command name. */
     private final String commandArguments;
 
@@ -38,15 +47,15 @@ public final class DeadlineCommand extends Command {
      */
     @Override
     public void execute(List<Task> tasks, Ui ui) throws CaitlynException {
-        int markerIndex = commandArguments.indexOf("/by");
-        if (markerIndex <= 0) {
-            throw new CaitlynException(
-                    "I beg your pardon, master. Please provide a deadline in the format: "
-                            + "deadline task /by date.");
+        Matcher markers = DEADLINE_MARKER.matcher(commandArguments);
+        if (!markers.find()) {
+            throw new CaitlynException(FORMAT_ERROR);
         }
-
-        String description = commandArguments.substring(0, markerIndex).trim();
-        String by = commandArguments.substring(markerIndex + "/by".length()).trim();
+        String description = commandArguments.substring(0, markers.start()).trim();
+        String by = commandArguments.substring(markers.end()).trim();
+        if (markers.find()) {
+            throw new CaitlynException(FORMAT_ERROR);
+        }
         if (description.isEmpty() || by.isEmpty()) {
             throw new CaitlynException(
                     "I beg your pardon, master. Please provide both a task description and a deadline.");

@@ -1,11 +1,20 @@
 package caitlyn;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * A command that creates an event task.
+ * Creates an event task from a description and ordered date boundaries.
  */
 public final class EventCommand extends Command {
+    /** Recognizes standalone boundary markers without matching parts of descriptions. */
+    private static final Pattern BOUNDARY_MARKER = Pattern.compile("(?:^|[ \\t]+)/(from|to)(?=[ \\t]|$)");
+
+    /** Explains the required order and spelling of event arguments. */
+    private static final String FORMAT_ERROR = "I beg your pardon, master. Please provide an event in the format: "
+            + "event task /from start /to end.";
+
     /** The text after the {@code event} command name. */
     private final String commandArguments;
 
@@ -38,18 +47,20 @@ public final class EventCommand extends Command {
      */
     @Override
     public void execute(List<Task> tasks, Ui ui) throws CaitlynException {
-        int fromMarkerIndex = commandArguments.indexOf("/from");
-        int toMarkerIndex = commandArguments.indexOf("/to");
-        if (fromMarkerIndex <= 0 || toMarkerIndex <= fromMarkerIndex) {
-            throw new CaitlynException(
-                    "I beg your pardon, master. Please provide an event in the format: "
-                            + "event task /from start /to end.");
+        Matcher markers = BOUNDARY_MARKER.matcher(commandArguments);
+        if (!markers.find() || !"from".equals(markers.group(1))) {
+            throw new CaitlynException(FORMAT_ERROR);
         }
-
-        String description = commandArguments.substring(0, fromMarkerIndex).trim();
-        String from = commandArguments.substring(fromMarkerIndex + "/from".length(), toMarkerIndex)
-                .trim();
-        String to = commandArguments.substring(toMarkerIndex + "/to".length()).trim();
+        String description = commandArguments.substring(0, markers.start()).trim();
+        int fromStart = markers.end();
+        if (!markers.find() || !"to".equals(markers.group(1))) {
+            throw new CaitlynException(FORMAT_ERROR);
+        }
+        String from = commandArguments.substring(fromStart, markers.start()).trim();
+        String to = commandArguments.substring(markers.end()).trim();
+        if (markers.find()) {
+            throw new CaitlynException(FORMAT_ERROR);
+        }
         if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
             throw new CaitlynException(
                     "I beg your pardon, master. Please provide a description, start time, "
@@ -60,9 +71,7 @@ public final class EventCommand extends Command {
             addTask(tasks, task);
             ui.showTaskAdded(task, tasks.size());
         } catch (IllegalArgumentException exception) {
-            throw new CaitlynException(
-                    "I beg your pardon, master. Please use valid dates such as 2019-10-15 "
-                            + "or 2/12/2019 1800.");
+            throw new CaitlynException("I beg your pardon, master. " + exception.getMessage());
         }
     }
 }

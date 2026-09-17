@@ -190,16 +190,19 @@ class TaskStorageTest {
     @Test
     void load_mixedLegacyAndWithinRecords_retainsLegacyValidation() throws IOException {
         writeTaskFile(List.of("T | 1 | keep", "D | 0 | precise | 2027-01-15T09:00:01",
-                "E | 0 | reversed | 2027-01-25 | 2027-01-15",
+                "E | 0 | precise | 2027-01-15T09:00:30 | 2027-01-15T09:00:45.123456789",
                 "E | 1 | equal | 2027-01-15T09:00 | 2027-01-15T09:00",
                 "W | 0 | new task | 15/1/2027 0900 | 25/1/2027"));
         List<Task> tasks = storage.load();
         assertEquals(5, tasks.size());
         storage.save(tasks);
         assertEquals(List.of("T | 1 | keep", "D | 0 | precise | 2027-01-15T09:00:01",
-                "E | 0 | reversed | 2027-01-25 | 2027-01-15",
+                "E | 0 | precise | 2027-01-15T09:00:30 | 2027-01-15T09:00:45.123456789",
                 "E | 1 | equal | 2027-01-15T09:00 | 2027-01-15T09:00",
                 "W | 0 | new task | 2027-01-15T09:00 | 2027-01-25"), Files.readAllLines(taskFile));
+        assertEquals("[D][ ] precise (by: Jan 15 2027 9:00:01 AM)", tasks.get(1).toString());
+        assertEquals("[E][ ] precise (from: Jan 15 2027 9:00:30 AM to: Jan 15 2027 9:00:45.123456789 AM)",
+                tasks.get(2).toString());
     }
 
     @Test

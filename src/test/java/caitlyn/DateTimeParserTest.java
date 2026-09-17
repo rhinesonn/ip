@@ -82,16 +82,24 @@ class DateTimeParserTest {
     }
 
     @Test
-    void format_midnightNoonAndSeconds_preservesStoragePrecision() {
+    void format_midnightNoonAndSeconds_preservesDisplayAndStoragePrecision() {
         for (String[] example : List.of(
                 new String[]{"2027-01-15", "Jan 15 2027"},
                 new String[]{"2027-01-15T00:00", "Jan 15 2027 12:00 AM"},
                 new String[]{"2027-01-15T12:00", "Jan 15 2027 12:00 PM"},
-                new String[]{"2027-01-15T23:59:01.123", "Jan 15 2027 11:59 PM"})) {
+                new String[]{"2027-01-15T23:59:01.123", "Jan 15 2027 11:59:01.123 PM"},
+                new String[]{"2027-01-15T18:00:30", "Jan 15 2027 6:00:30 PM"},
+                new String[]{"2027-01-15T18:00:00.000000001", "Jan 15 2027 6:00:00.000000001 PM"})) {
             DateTimeParser.ParsedDateTime parsed = DateTimeParser.parse(example[0]);
             assertEquals(example[1], DateTimeParser.formatForDisplay(parsed));
             assertEquals(example[0], DateTimeParser.formatForStorage(parsed));
             assertEquals(parsed, DateTimeParser.parse(DateTimeParser.formatForStorage(parsed)));
         }
+    }
+
+    @Test
+    void parse_spacesAndTabs_preservesDateTimeValue() {
+        assertEquals(LocalDateTime.of(2026, 12, 1, 18, 0),
+                DateTimeParser.parse(" 2026-12-01 \t 1800 ").value());
     }
 }

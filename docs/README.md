@@ -51,7 +51,7 @@ Format: `event DESCRIPTION /from START /to END`
 
 Example: `event Team planning session /from 2026-09-18 1400 /to 2026-09-18 1500`
 
-Caitlyn adds an `[E][ ]` task and displays both times. Include a full date at each end, even for a meeting on the same day.
+Caitlyn adds an `[E][ ]` task and displays both times. Include a full date at each end, even for a meeting on the same day. The start must not be after the end; equal times are allowed. A date-only start begins at midnight, and a date-only end includes the entire day. Use `/from` followed by `/to` exactly once, separated from surrounding text by spaces or tabs.
 
 ### Within-period tasks
 
@@ -131,7 +131,7 @@ Use a real calendar date in any of these formats:
 | Date with a colon in the time | `2026-09-21 18:00`, `21/9/2026 18:00` |
 | ISO date-time | `2026-09-21T18:00` |
 
-Caitlyn displays dates as `Sep 21 2026` and times as `6:00 PM`. Use minute precision; `within` rejects nonzero seconds or fractional seconds. Words such as `tomorrow`, times without dates, and timezone offsets are not supported. Past dates and duplicate tasks are allowed.
+Caitlyn displays dates as `Sep 21 2026` and minute-precision times as `6:00 PM`. Events and deadlines also accept ISO seconds and fractional seconds, such as `2026-09-21T18:00:30.125`, displayed as `6:00:30.125 PM` without losing precision. Use minute precision for `within`, which rejects nonzero seconds or fractional seconds. Words such as `tomorrow`, times without dates, and timezone offsets are not supported. Past dates and duplicate tasks are allowed. Separate command names, date markers, and date/time parts with spaces or tabs. `/by`, `/from`, and `/to` must be standalone tokens; text such as `/bytecode` or `/fromage` can appear in descriptions.
 
 ## Saving and troubleshooting
 
@@ -146,3 +146,5 @@ Task changes save automatically to `data/duke.txt` inside the folder from which 
 | Your saved list seems missing | Check that you launched from the usual folder. A missing save file starts a new empty list. |
 
 Keep backups when changing app versions: older versions without `within` support cannot read `[W]` tasks and may overwrite their saved data. Use the current version for lists containing within-period tasks.
+
+Older versions allowed events whose end preceded their start. These invalid saved events now trigger the protected session described above. Back up the file, correct those event boundaries, and restart. Caitlyn does not silently remove or rewrite them.

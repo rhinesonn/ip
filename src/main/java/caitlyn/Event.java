@@ -2,11 +2,12 @@ package caitlyn;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A task that takes place between a start date/time and an end date/time.
+ * Represents a task that takes place between a start date/time and an end date/time.
  */
 public class Event extends Task {
     /** The date and optional time at which the event starts. */
@@ -27,10 +28,10 @@ public class Event extends Task {
      * @param description the text describing the event.
      * @param from the event's start date or time.
      * @param to the event's end date or time.
-     * @throws IllegalArgumentException if an event field is null or a date is invalid.
+     * @throws IllegalArgumentException if a field is null, a date is invalid, or the range is reversed.
      */
     public Event(String description, String from, String to) {
-        this(description, DateTimeParser.parse(from), DateTimeParser.parse(to));
+        this(description, parseDate(from), parseDate(to));
     }
 
     /**
@@ -39,6 +40,7 @@ public class Event extends Task {
      * @param description the event description.
      * @param from the event's start date.
      * @param to the event's end date.
+     * @throws IllegalArgumentException if a field is null or the range is reversed.
      */
     public Event(String description, LocalDate from, LocalDate to) {
         this(description, convertDateOnly(from), convertDateOnly(to));
@@ -50,6 +52,7 @@ public class Event extends Task {
      * @param description the event description.
      * @param from the event's start date and time.
      * @param to the event's end date and time.
+     * @throws IllegalArgumentException if a field is null or the range is reversed.
      */
     public Event(String description, LocalDateTime from, LocalDateTime to) {
         this(description, new DateTimeParser.ParsedDateTime(from, true),
@@ -64,6 +67,12 @@ public class Event extends Task {
         super(description);
         if (from == null || to == null) {
             throw new IllegalArgumentException("An event's start and end cannot be null.");
+        }
+        // An end supplied without a time includes that entire day, as with within-period tasks.
+        LocalDateTime effectiveEnd = to.hasTime() ? to.value()
+                : to.value().toLocalDate().atTime(LocalTime.MAX);
+        if (from.value().isAfter(effectiveEnd)) {
+            throw new IllegalArgumentException("The event's start must not be after its end.");
         }
         this.from = from.value();
         this.hasFromTime = from.hasTime();
@@ -130,5 +139,15 @@ public class Event extends Task {
             throw new IllegalArgumentException("An event date cannot be null.");
         }
         return new DateTimeParser.ParsedDateTime(date.atStartOfDay(), false);
+    }
+
+    /** Parses an event boundary and provides a command-friendly explanation of invalid input. */
+    private static DateTimeParser.ParsedDateTime parseDate(String text) {
+        try {
+            return DateTimeParser.parse(text);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException(
+                    "Please use valid dates such as 2019-10-15 or 2/12/2019 1800.", exception);
+        }
     }
 }

@@ -3,8 +3,10 @@ package caitlyn;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.Locale;
 
@@ -19,6 +21,13 @@ public final class DateTimeParser {
     /** Format used when displaying dates that include a time. */
     private static final DateTimeFormatter DISPLAY_DATE_TIME =
             DateTimeFormatter.ofPattern("MMM d uuuu h:mm a", Locale.ENGLISH);
+
+    /** Shows all significant seconds and fractional seconds instead of silently hiding them. */
+    private static final DateTimeFormatter DISPLAY_PRECISE_DATE_TIME = new DateTimeFormatterBuilder()
+            .appendPattern("MMM d uuuu h:mm:ss")
+            .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
+            .appendPattern(" a")
+            .toFormatter(Locale.ENGLISH);
 
     /** Formats accepted when a command includes a time. */
     private static final List<DateTimeFormatter> DATE_TIME_FORMATTERS = List.of(
@@ -49,6 +58,7 @@ public final class DateTimeParser {
         if (text == null || text.isBlank()) {
             throw new IllegalArgumentException("A date or time cannot be empty.");
         }
+        text = text.trim().replaceAll("[ \\t]+", " ");
 
         try {
             return new ParsedDateTime(LocalDateTime.parse(text), true);
@@ -94,6 +104,9 @@ public final class DateTimeParser {
      * @return a readable date or date/time string.
      */
     public static String formatForDisplay(LocalDateTime value, boolean hasTime) {
+        if (hasTime && (value.getSecond() != 0 || value.getNano() != 0)) {
+            return value.format(DISPLAY_PRECISE_DATE_TIME);
+        }
         DateTimeFormatter formatter = hasTime ? DISPLAY_DATE_TIME : DISPLAY_DATE;
         return value.format(formatter);
     }
@@ -131,7 +144,7 @@ public final class DateTimeParser {
     }
 
     /**
-     * A parsed date/time together with whether the user supplied a time.
+     * Represents a parsed date/time and whether the user supplied a time.
      *
      * @param value the parsed local date/time.
      * @param hasTime whether the original input included a time.

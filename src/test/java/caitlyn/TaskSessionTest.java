@@ -40,6 +40,20 @@ class TaskSessionTest {
     }
 
     @Test
+    void execute_savedReversedEvent_protectsOriginalFile() throws Exception {
+        Files.writeString(taskFile, "T | 1 | keep\nE | 0 | reversed | 2026-12-03T16:00 | 2026-12-03T15:00\n");
+        byte[] original = Files.readAllBytes(taskFile);
+        TaskSession session = new TaskSession(storage);
+        assertTrue(session.hasLoadingError());
+        assertEquals(0, session.getTaskCount());
+        for (String input : List.of("todo blocked", "delete 1", "mark 1")) {
+            assertEquals(BLOCKED_MESSAGE, assertThrows(CaitlynException.class, () ->
+                    session.execute(parseCommand(input), ui)).getMessage());
+            assertArrayEquals(original, Files.readAllBytes(taskFile));
+        }
+    }
+
+    @Test
     void execute_loadFailure_blocksEveryMutationBeforeValidation() throws Exception {
         Files.writeString(taskFile, "T | 0 | keep\r\nW | 0 | invalid | 2027-01-26 | 2027-01-25\r\n");
         byte[] original = Files.readAllBytes(taskFile);

@@ -162,7 +162,15 @@ class CommandTest {
                 "deadline task /by", "deadline task /by tomorrow", "event", "event task /from 2027-01-15",
                 "event task /to 2027-01-25 /from 2027-01-15", "event /from 2027-01-15 /to 2027-01-25",
                 "event task /from /to 2027-01-25", "event task /from 2027-01-15 /to",
-                "event task /from tomorrow /to 2027-01-25", "event task /from 2027-01-15 /to tomorrow")) {
+                "event task /from tomorrow /to 2027-01-25", "event task /from 2027-01-15 /to tomorrow",
+                "event reversed /from 2026-12-03 1600 /to 2026-12-03 1500",
+                "event reversed /from 2026-12-04 /to 2026-12-03",
+                "event reversed /from 2026-09-21T18:00:45 /to 2026-09-21T18:00:30",
+                "event task /from2026-12-03 /to2026-12-04", "deadline task /by2026-12-03",
+                "deadline task/by 2026-12-03", "deadline task /by /by 2026-12-03",
+                "event task/from 2026-12-03 /to 2026-12-04",
+                "event task /from 2026-12-03 /from 2026-12-04 /to 2026-12-05",
+                "event task /from 2026-12-03 /to 2026-12-04 /to 2026-12-05")) {
             List<String> messages = new ArrayList<>();
             assertThrows(CaitlynException.class, () -> Parser.parse(input, storage).execute(tasks,
                     new Ui(messages::add)), input);
@@ -172,6 +180,42 @@ class CommandTest {
                     Files.readAllLines(temporaryDirectory.resolve("tasks.txt")), input);
             assertTrue(messages.isEmpty(), input);
         }
+    }
+
+    @Test
+    void execute_dateMarkersAndWhitespace_preservesDescriptionsAndPrecision() throws Exception {
+        TaskStorage storage = new TaskStorage(temporaryDirectory.resolve("tasks.txt"));
+        List<Task> tasks = new ArrayList<>();
+        List<String> messages = new ArrayList<>();
+        Ui ui = new Ui(messages::add);
+        Parser.parse("deadline\tread /bytecode\t/by\t2026-09-21  1800", storage).execute(tasks, ui);
+        Parser.parse("event\tinspect /fromage and /tools\t/from\t2026-09-21\t1800 /to 2026-09-21 1900",
+                storage).execute(tasks, ui);
+        Parser.parse("event short /from 2026-09-21T18:00:30 /to 2026-09-21T18:00:45", storage)
+                .execute(tasks, ui);
+        assertEquals("read /bytecode", tasks.get(0).getDescription());
+        assertEquals("inspect /fromage and /tools", tasks.get(1).getDescription());
+        assertEquals("[E][ ] short (from: Sep 21 2026 6:00:30 PM to: Sep 21 2026 6:00:45 PM)",
+                tasks.get(2).toString());
+        assertEquals(tasks.stream().map(Task::toString).toList(),
+                storage.load().stream().map(Task::toString).toList());
+
+        Parser.parse("mark\t3", storage).execute(tasks, ui);
+        assertTrue(tasks.get(2).isDone());
+        Parser.parse("unmark\t3", storage).execute(tasks, ui);
+        assertFalse(tasks.get(2).isDone());
+        Parser.parse("find\tshort", storage).execute(tasks, ui);
+        assertTrue(messages.getLast().contains("3.[E][ ] short"));
+        Parser.parse("delete\t3", storage).execute(tasks, ui);
+        assertEquals(2, storage.load().size());
+    }
+
+    @Test
+    void execute_reversedEvent_explainsRangeError() {
+        assertEquals("I beg your pardon, master. The event's start must not be after its end.",
+                assertThrows(CaitlynException.class, () -> new EventCommand(
+                        "reversed /from 2026-12-03 1600 /to 2026-12-03 1500")
+                        .execute(new ArrayList<>(), new Ui(message -> { }))).getMessage());
     }
 
     @Test

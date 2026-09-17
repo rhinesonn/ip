@@ -36,6 +36,18 @@ class ParserTest {
         for (String input : new String[]{"WITHIN task", "Within task", "w task", "withinTask", "within/task"}) {
             assertInstanceOf(UnknownCommand.class, Parser.parse(input));
         }
-        assertInstanceOf(UnknownCommand.class, Parser.parse("event\ttask"));
+        assertInstanceOf(EventCommand.class, Parser.parse("event\ttask"));
+    }
+
+    @Test
+    void parse_tabSeparators_recognizesAllArgumentCommands() {
+        assertInstanceOf(TodoCommand.class, Parser.parse("todo\tread book"));
+        assertInstanceOf(DeadlineCommand.class, Parser.parse("deadline\treturn book /by 2026-12-01"));
+        assertInstanceOf(FindCommand.class, Parser.parse("find\tbook"));
+        assertInstanceOf(MarkCommand.class, Parser.parse("mark\t1"));
+        assertInstanceOf(MarkCommand.class, Parser.parse("unmark\t1"));
+        assertInstanceOf(DeleteCommand.class, Parser.parse("delete\t1"));
+        assertInstanceOf(UnknownCommand.class, Parser.parse("list extra"));
+        assertInstanceOf(UnknownCommand.class, Parser.parse("bye extra"));
     }
 }
